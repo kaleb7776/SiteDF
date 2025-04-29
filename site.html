@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DF Esquadrias</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos Globais */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        h1, h2, h3 {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Cabeçalho */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 15px 0;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+        }
+
+        header .logo {
+            display: inline-block;
+            font-size: 30px;
+            font-weight: 600;
+            color: #fff;
+            margin-left: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        header nav {
+            display: inline-block;
+            float: right;
+            margin-right: 20px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        header nav a {
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        header nav a:hover {
+            color: #fff;
+            border-bottom: 2px solid #fff;
+        }
+
+        /* Banner */
+        .banner {
+            background: url('https://via.placeholder.com/1600x800.png?text=Esquadrias+de+Alum%C3%ADnio') no-repeat center center/cover;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+        }
+
+        .banner h1 {
+            font-size: 60px;
+            font-weight: 600;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.8);
+        }
+
+        .banner p {
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        .banner .btn {
+            margin-top: 30px;
+            padding: 15px 30px;
+            background-color: #fff;
+            color: #000;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .banner .btn:hover {
+            background-color: #ccc;
+        }
+
+        /* Sobre nós */
+        .sobre-nos {
+            padding: 80px 0;
+            text-align: center;
+            background-color: #000;
+        }
+
+        .sobre-nos h2 {
+            font-size: 40px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .sobre-nos p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .sobre-nos .btn {
+            background-color: #fff;
+            color: #000;
+            font-size: 18px;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+
+        /* Produtos */
+        .produtos {
+            padding: 80px 0;
+            background-color: #000;
+            text-align: center;
+        }
+
+        .produtos h2 {
+            font-size: 40px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .produtos .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .produtos .produto {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .produtos .produto img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .produtos .produto h3 {
+            font-size: 22px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .produtos .produto p {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .produtos .produto:hover {
+            transform: scale(1.05);
+        }
+
+        /* Formulário de Contato */
+        .contato {
+            padding: 80px 0;
+            background-color: #000;
+            text-align: center;
+        }
+
+        .contato h2 {
+            font-size: 40px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .contato form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contato input,
+        .contato textarea {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #333;
+            color: #fff;
+        }
+
+        .contato button {
+            padding: 15px 30px;
+            background-color: #fff;
+            color: #000;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .contato button:hover {
+            background-color: #ccc;
+        }
+
+        /* Rodapé */
+        footer {
+            background-color: #000;
+            padding: 40px 0;
+            text-align: center;
+            color: #fff;
+        }
+
+        footer .social-links a {
+            color: #fff;
+            margin: 0 10px;
+            font-size: 24px;
+            transition: color 0.3s ease;
+        }
+
+        footer .social-links a:hover {
+            color: #ccc;
+        }
+
+        /* WhatsApp Button */
+        .whatsapp-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #25D366;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+        }
+
+        .whatsapp-btn:hover {
+            background-color: #128C7E;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            header nav {
+                float: none;
+                margin-top: 20px;
+            }
+
+            .produtos .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .banner h1 {
+                font-size: 45px;
+            }
+
+            .banner p {
+                font-size: 20px;
+            }
+
+            .sobre-nos h2,
+            .produtos h2,
+            .contato h2 {
+                font-size: 30px;
+            }
+
+            .produtos .produto {
+                padding: 15px;
+            }
+
+            .contato form {
+                width: 90%;
+            }
+
+            .contato input,
+            .contato textarea {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header>
+        <div class="logo">DF Esquadrias</div>
+        <nav>
+            <a href="#sobre-nos">Quem Somos</a>
+            <a href="#produtos">Produtos</a>
+            <a href="#depoimentos">Depoimentos</a>
+            <a href="#contato">Contato</a>
+        </nav>
+    </header>
+
+    <!-- Banner -->
+    <section class="banner">
+        <div>
+            <h1>Excelência em Esquadrias de Alumínio</h1>
+            <p>Transformando Espaços com Qualidade e Inovação</p>
+            <button class="btn">Solicitar Orçamento</button>
+        </div>
+    </section>
+
+    <!-- Seções de conteúdo (Sobre, Produtos, Depoimentos, etc.) -->
+
+    <!-- Botão do WhatsApp -->
+    <a href="https://wa.me/5561996018782" target="_blank">
+        <div class="whatsapp-btn">
+            <i class="fab fa-whatsapp"></i>
+        </div>
+    </a>
+
+    <!-- Rodapé -->
+    <footer>
+        <p>&copy; 2025 DF Esquadrias. Todos os direitos reservados.</p>
+        <div class="social-links">
+            <a href="https://facebook.com" target="_blank">Facebook</a>
+            <a href="https://instagram.com" target="_blank">Instagram</a>
+            <a href="https://linkedin.com" target="_blank">LinkedIn</a>
+        </div>
+    </footer>
+
+    <!-- Scripts (opcional) -->
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Importando Font Awesome -->
+</body>
+</html>
