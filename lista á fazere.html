@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro-Task Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --text: #1e293b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: #fff;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+
+        header h1 { font-size: 24px; color: var(--text); margin-bottom: 8px; }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: var(--bg);
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-card span { display: block; font-size: 18px; font-weight: 600; color: var(--primary); }
+        .stat-card small { font-size: 11px; color: #64748b; text-transform: uppercase; }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .input-row { display: flex; gap: 8px; }
+        input, select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); }
+        input[type="text"] { flex: 1; }
+
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+        .filter-btns button {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .filter-btns button.active { color: var(--primary); text-decoration: underline; }
+        .clear-all { color: var(--danger); font-size: 12px; cursor: pointer; border: none; background: none; }
+
+        ul { list-style: none; max-height: 350px; overflow-y: auto; }
+        li {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg);
+            margin-bottom: 10px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s ease;
+            transition: 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        li.completed { opacity: 0.6; }
+        li.completed .text { text-decoration: line-through; }
+
+        .category-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 12px; }
+        .cat-trabalho { background: #f59e0b; }
+        .cat-pessoal { background: #ec4899; }
+        .cat-estudo { background: #3b82f6; }
+
+        .text { flex: 1; font-size: 15px; color: var(--text); cursor: pointer; }
+        .delete-btn { color: #cbd5e1; cursor: pointer; transition: 0.3s; padding: 5px; }
+        .delete-btn:hover { color: var(--danger); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>Minha Jornada</h1>
+        <div class="stats-container">
+            <div class="stat-card"><span id="total-count">0</span><small>Total</small></div>
+            <div class="stat-card"><span id="pending-count">0</span><small>Pendentes</small></div>
+            <div class="stat-card"><span id="completed-count">0</span><small>Feitas</small></div>
+        </div>
+    </header>
+
+    <div class="input-group">
+        <div class="input-row">
+            <input type="text" id="todo-input" placeholder="Nova tarefa...">
+            <select id="category-select">
+                <option value="trabalho">Trabalho</option>
+                <option value="pessoal">Pessoal</option>
+                <option value="estudo">Estudo</option>
+            </select>
+            <button class="btn-add" id="add-btn">Add</button>
+        </div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-btns">
+            <button class="active" onclick="filterTasks('all')">Todas</button>
+            <button onclick="filterTasks('active')">Ativas</button>
+            <button onclick="filterTasks('completed')">Feitas</button>
+        </div>
+        <button class="clear-all" onclick="clearAll()">Limpar Tudo</button>
+    </div>
+
+    <ul id="todo-list"></ul>
+</div>
+
+<script>
+    // Seleção de elementos
+    const input = document.getElementById('todo-input');
+    const categorySelect = document.getElementById('category-select');
+    const addBtn = document.getElementById('add-btn');
+    const todoList = document.getElementById('todo-list');
+    
+    // Estado da Aplicação (JSON)
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    let currentFilter = 'all';
+
+    // Iniciar
+    renderTasks();
+
+    // Eventos
+    addBtn.addEventListener('click', addTask);
+    input.addEventListener('keypress', (e) => e.key === 'Enter' && addTask());
+
+    function addTask() {
+        const text = input.value.trim();
+        if (!text) return alert("Digite algo!");
+
+        const newTask = {
+            id: Date.now(),
+            text: text,
+            category: categorySelect.value,
+            completed: false
+        };
+
+        tasks.push(newTask);
+        input.value = '';
+        updateAll();
+    }
+
+    function toggleTask(id) {
+        tasks = tasks.map(task => 
+            task.id === id ? { ...task, completed: !task.completed } : task
+        );
+        updateAll();
+    }
+
+    function deleteTask(id) {
+        tasks = tasks.filter(task => task.id !== id);
+        updateAll();
+    }
+
+    function filterTasks(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btns button').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText.toLowerCase().includes(filter === 'all' ? 'todas' : filter === 'active' ? 'ativas' : 'feitas'));
+        });
+        renderTasks();
+    }
+
+    function clearAll() {
+        if(confirm("Deseja apagar todas as tarefas?")) {
+            tasks = [];
+            updateAll();
+        }
+    }
+
+    function updateAll() {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        renderTasks();
+        updateStats();
+    }
+
+    function updateStats() {
+        document.getElementById('total-count').innerText = tasks.length;
+        document.getElementById('pending-count').innerText = tasks.filter(t => !t.completed).length;
+        document.getElementById('completed-count').innerText = tasks.filter(t => t.completed).length;
+    }
+
+    function renderTasks() {
+        todoList.innerHTML = '';
+
+        let filtered = tasks;
+        if (currentFilter === 'active') filtered = tasks.filter(t => !t.completed);
+        if (currentFilter === 'completed') filtered = tasks.filter(t => t.completed);
+
+        filtered.forEach(task => {
+            const li = document.createElement('li');
+            li.className = task.completed ? 'completed' : '';
+            li.innerHTML = `
+                <div class="category-dot cat-${task.category}"></div>
+                <div class="text" onclick="toggleTask(${task.id})">${task.text}</div>
+                <div class="delete-btn" onclick="deleteTask(${task.id})">✕</div>
+            `;
+            todoList.appendChild(li);
+        });
+        updateStats();
+    }
+</script>
+
+</body>
+</html>
