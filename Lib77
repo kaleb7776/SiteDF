@@ -326,7 +326,7 @@ end
     
     AddCorner(Main, 10)
     AddStroke(Main, Theme.Border)
-    
+    local FooterHeight = 45   -- altura do roda
     -- TopBar
     local TopBar = Create("Frame", {
         Name = "TopBar",
@@ -484,8 +484,6 @@ end
                 end
             end)
         end
-      
-local FooterHeight = 45   -- altura do roda
   
         if MinBtn then
             MinBtn.MouseButton1Click:Connect(function()
