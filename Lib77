@@ -275,7 +275,7 @@ function Library:Notify(title, text, duration, notificationType)
 end
 
 -- ================================================================
--- CAIXA DE CONFIRMAÇÃO (DIÁLOGO MODAL)
+-- CAIXA DE CONFIRMAÇÃO (DIÁLOGO MODAL) – CORRIGIDA
 -- ================================================================
 function Library:Confirm(title, message, callback)
     if not Library._ScreenGui then
@@ -283,19 +283,21 @@ function Library:Confirm(title, message, callback)
         return
     end
 
+    -- Overlay com transparência ZERO (invisível)
     local overlay = Create("Frame", {
         Name = "ConfirmOverlay",
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundColor3 = Color3.new(0, 0, 0),
-        BackgroundTransparency = 0.5,
+        BackgroundTransparency = 1,   -- <-- AGORA TOTALMENTE TRANSPARENTE
         ZIndex = 999,
         Parent = Library._ScreenGui
     })
 
+    -- Diálogo com altura maior para caber o texto
     local dialog = Create("Frame", {
         Name = "ConfirmDialog",
-        Size = UDim2.new(0, 400, 0, 180),
-        Position = UDim2.new(0.5, -200, 0.5, -90),
+        Size = UDim2.new(0, 420, 0, 210),   -- aumentei a altura
+        Position = UDim2.new(0.5, -210, 0.5, -105),
         BackgroundColor3 = Theme.Background,
         BorderSizePixel = 0,
         ZIndex = 1000,
@@ -304,7 +306,7 @@ function Library:Confirm(title, message, callback)
     AddCorner(dialog, 12)
     AddStroke(dialog, Theme.Border)
 
-    -- Ícone ou título decorativo
+    -- Título
     local titleLabel = Create("TextLabel", {
         Size = UDim2.new(1, -20, 0, 30),
         Position = UDim2.new(0, 10, 0, 10),
@@ -317,7 +319,7 @@ function Library:Confirm(title, message, callback)
         Parent = dialog
     })
 
-    -- Linha divisória (opcional)
+    -- Linha divisória
     local line = Create("Frame", {
         Size = UDim2.new(1, -20, 0, 1),
         Position = UDim2.new(0, 10, 0, 45),
@@ -326,13 +328,13 @@ function Library:Confirm(title, message, callback)
         Parent = dialog
     })
 
-    -- Mensagem (texto rico em português)
+    -- Mensagem (texto rico em português) – com altura maior e centralizado
     local msgLabel = Create("TextLabel", {
-        Size = UDim2.new(1, -20, 0, 60),
-        Position = UDim2.new(0, 10, 0, 55),
+        Size = UDim2.new(1, -30, 0, 80),    -- altura aumentada
+        Position = UDim2.new(0, 15, 0, 55), -- posição ajustada
         BackgroundTransparency = 1,
         Text = message or "Tem certeza que deseja realizar esta ação?",
-        TextColor3 = Theme.TextDark,
+        TextColor3 = Theme.Text,            -- agora cor branca (mais legível)
         TextSize = 13,
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Center,
@@ -344,8 +346,8 @@ function Library:Confirm(title, message, callback)
     -- Botão "Sim" (verde)
     local yesBtn = Create("TextButton", {
         Name = "Yes",
-        Size = UDim2.new(0, 120, 0, 38),
-        Position = UDim2.new(0.5, -135, 1, -55),
+        Size = UDim2.new(0, 130, 0, 38),
+        Position = UDim2.new(0.5, -145, 1, -55),
         BackgroundColor3 = Theme.Success,
         Text = "✔ Sim, encerrar",
         TextColor3 = Color3.new(1, 1, 1),
@@ -359,7 +361,7 @@ function Library:Confirm(title, message, callback)
     -- Botão "Não" (vermelho)
     local noBtn = Create("TextButton", {
         Name = "No",
-        Size = UDim2.new(0, 120, 0, 38),
+        Size = UDim2.new(0, 130, 0, 38),
         Position = UDim2.new(0.5, 15, 1, -55),
         BackgroundColor3 = Theme.Error,
         Text = "✖ Não, cancelar",
@@ -371,7 +373,7 @@ function Library:Confirm(title, message, callback)
     })
     AddCorner(noBtn, 8)
 
-    -- Efeitos hover (opcional)
+    -- Efeitos hover
     yesBtn.MouseEnter:Connect(function()
         Tween(yesBtn, 0.15, {BackgroundColor3 = Theme.Success:Lerp(Color3.new(1,1,1), 0.2)})
     end)
@@ -395,10 +397,9 @@ function Library:Confirm(title, message, callback)
         pcall(callback, false)
     end)
 
-    -- Fechar ao clicar fora (opcional)
+    -- Fechar ao clicar fora (agora só clicando no overlay, mas como é transparente, não atrapalha)
     overlay.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            -- Só fecha se clicar no overlay (não nos botões)
             local target = input.Target
             if target == overlay then
                 overlay:Destroy()
@@ -407,7 +408,6 @@ function Library:Confirm(title, message, callback)
         end
     end)
 end
-
 -- ================================================================
 -- FUNÇÃO PRINCIPAL: CRIAR JANELA
 -- ================================================================
