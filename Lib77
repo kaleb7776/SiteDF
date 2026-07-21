@@ -640,10 +640,10 @@ function Library:CreateWindow(configuration, toggleKey)
         ClipsDescendants = true,
         Parent = mainFrame
     })
-    
-    -- ============================================================
-    -- RODAPÉ (FOOTER) – ULTRA INFORMATIVO E ADAPTÁVEL
-    -- ============================================================
+
+-- ============================================================
+-- RODAPÉ MINIMALISTA – AVATAR + NOME + JOGO (ABAIXO)
+-- ============================================================
     local footer = Create("Frame", {
         Name = "Footer",
         Size = UDim2.new(1, 0, 0, footerHeight),
@@ -666,35 +666,16 @@ function Library:CreateWindow(configuration, toggleKey)
             Parent = footer
         })
         
-        -- Definição das colunas (proporções)
-        local columnWidths = {
-            avatar = 0.15,
-            game = 0.28,
-            executor = 0.25,
-            status = 0.20,
-            author = 0.12
-        }
-        
         -- ============================================================
-        -- COLUNA 1: AVATAR + NOME + VIP
+        -- AVATAR (esquerda, centralizado verticalmente)
         -- ============================================================
-        local column1 = Create("Frame", {
-            Size = UDim2.new(columnWidths.avatar, 0, 1, 0),
-            Position = UDim2.new(0, 0, 0, 0),
-            BackgroundColor3 = Theme.Background,
-            BackgroundTransparency = 0.25,
-            BorderSizePixel = 0,
-            Parent = footer
-        })
-        pcall(function() AddCorner(column1, 8) end)
-        
         local avatarSize = math.clamp(footerHeight * 0.6, 28, 36)
         local avatarImage = Create("ImageLabel", {
             Size = UDim2.new(0, avatarSize, 0, avatarSize),
-            Position = UDim2.new(0, 4, 0.5, -avatarSize/2),
+            Position = UDim2.new(0, 8, 0.5, -avatarSize/2),
             BackgroundColor3 = Theme.Element,
             BorderSizePixel = 0,
-            Parent = column1
+            Parent = footer
         })
         if avatarImage then
             pcall(function()
@@ -712,97 +693,41 @@ function Library:CreateWindow(configuration, toggleKey)
             end)
         end
         
-        local nameFontSize = math.clamp(footerHeight * 0.22, 10, 13)
+        -- ============================================================
+        -- NOME DO JOGADOR (ao lado do avatar, em cima)
+        -- ============================================================
+        local nameFontSize = math.clamp(footerHeight * 0.26, 12, 15)
         local nameLabel = Create("TextLabel", {
-            Size = UDim2.new(1, -(avatarSize + 6), 0, footerHeight * 0.5),
-            Position = UDim2.new(0, avatarSize + 6, 0, 2),
+            Size = UDim2.new(1, -(avatarSize + 16), 0, footerHeight * 0.5),
+            Position = UDim2.new(0, avatarSize + 14, 0, 2),
             BackgroundTransparency = 1,
             Text = (LocalPlayer and LocalPlayer.Name) or "??",
             TextColor3 = Theme.Text,
             TextSize = nameFontSize,
             Font = Enum.Font.GothamBold,
             TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = column1
-        })
-        
-        local vipFontSize = math.clamp(footerHeight * 0.16, 8, 10)
-        local vipLabel = Create("TextLabel", {
-            Size = UDim2.new(1, -(avatarSize + 6), 0, footerHeight * 0.4),
-            Position = UDim2.new(0, avatarSize + 6, 0, footerHeight * 0.52),
-            BackgroundTransparency = 1,
-            Text = "✦ CLASSIC VIP ✦",
-            TextColor3 = Color3.fromRGB(255, 215, 0),
-            TextSize = vipFontSize,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = column1
-        })
-        
-        -- ============================================================
-        -- COLUNA 2: JOGO + THUMBNAIL
-        -- ============================================================
-        local column2 = Create("Frame", {
-            Size = UDim2.new(columnWidths.game, 0, 1, 0),
-            Position = UDim2.new(columnWidths.avatar, 0, 0, 0),
-            BackgroundColor3 = Theme.Background,
-            BackgroundTransparency = 0.15,
-            BorderSizePixel = 0,
             Parent = footer
         })
         
-        local thumbSize = math.clamp(footerHeight * 0.6, 28, 38)
-        local gameThumbnail = Create("ImageLabel", {
-            Size = UDim2.new(0, thumbSize, 0, thumbSize),
-            Position = UDim2.new(0, 4, 0.5, -thumbSize/2),
-            BackgroundColor3 = Theme.Element,
-            BorderSizePixel = 0,
-            Parent = column2
-        })
-        if gameThumbnail then
-            pcall(function()
-                local corner = Instance.new("UICorner")
-                corner.CornerRadius = UDim.new(0, 4)
-                corner.Parent = gameThumbnail
-                AddStroke(gameThumbnail, Theme.Border)
-                local placeId = game.PlaceId
-                gameThumbnail.Image = string.format(
-                    "https://www.roblox.com/asset-thumbnail/image?assetId=%d&width=72&height=72&format=png",
-                    placeId
-                )
-                gameThumbnail.Loaded:Connect(function()
-                    if gameThumbnail.Image and gameThumbnail.Image == "" then
-                        gameThumbnail.Image = "rbxassetid://150719181"
-                    end
-                end)
-            end)
-        end
-        
+        -- ============================================================
+        -- NOME DO JOGO (abaixo do nome do jogador)
+        -- ============================================================
         local gameFontSize = math.clamp(footerHeight * 0.2, 10, 12)
         local gameNameLabel = Create("TextLabel", {
-            Size = UDim2.new(1, -(thumbSize + 6), 0, footerHeight * 0.5),
-            Position = UDim2.new(0, thumbSize + 6, 0, 2),
+            Size = UDim2.new(1, -(avatarSize + 16), 0, footerHeight * 0.4),
+            Position = UDim2.new(0, avatarSize + 14, 0, footerHeight * 0.52),
             BackgroundTransparency = 1,
-            Text = "Carregando...",
-            TextColor3 = Theme.Text,
-            TextSize = gameFontSize,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = column2
-        })
-        
-        local infoFontSize = math.clamp(footerHeight * 0.14, 8, 9)
-        local gameInfoLabel = Create("TextLabel", {
-            Size = UDim2.new(1, -(thumbSize + 6), 0, footerHeight * 0.4),
-            Position = UDim2.new(0, thumbSize + 6, 0, footerHeight * 0.52),
-            BackgroundTransparency = 1,
-            Text = "",
+            Text = "Carregando jogo...",
             TextColor3 = Theme.TextDark,
-            TextSize = infoFontSize,
+            TextSize = gameFontSize,
             Font = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = column2
+            Parent = footer
         })
         
+        -- ============================================================
+        -- BUSCA O NOME REAL DO JOGO
+        -- ============================================================
         task.spawn(function()
             pcall(function()
                 local marketplaceService = game:GetService("MarketplaceService")
@@ -814,252 +739,6 @@ function Library:CreateWindow(configuration, toggleKey)
                 else
                     gameNameLabel.Text = game.Name or "Jogo Desconhecido"
                 end
-            end)
-            while wait(5) do
-                local playersCount = #Players:GetPlayers()
-                local version = (game:FindFirstChild("Version") and game.Version.Value) or "N/A"
-                gameInfoLabel.Text = string.format("ID: %d • v%s • %d online", game.PlaceId, version, playersCount)
-            end
-        end)
-        
-        -- ============================================================
-        -- COLUNA 3: EXECUTOR
-        -- ============================================================
-        local column3 = Create("Frame", {
-            Size = UDim2.new(columnWidths.executor, 0, 1, 0),
-            Position = UDim2.new(columnWidths.avatar + columnWidths.game, 0, 0, 0),
-            BackgroundColor3 = Theme.Background,
-            BackgroundTransparency = 0.15,
-            BorderSizePixel = 0,
-            Parent = footer
-        })
-        
-        local executorIconSize = math.clamp(footerHeight * 0.35, 14, 18)
-        local executorIcon = Create("TextLabel", {
-            Size = UDim2.new(0, executorIconSize, 1, 0),
-            BackgroundTransparency = 1,
-            Text = "⚡",
-            TextColor3 = Theme.Accent,
-            TextSize = executorIconSize,
-            Font = Enum.Font.SourceSansBold,
-            TextXAlignment = Enum.TextXAlignment.Center,
-            Parent = column3
-        })
-        
-        local executorFontSize = math.clamp(footerHeight * 0.18, 9, 11)
-        local executorNameLabel = Create("TextLabel", {
-            Size = UDim2.new(1, -(executorIconSize + 4), 0, footerHeight * 0.5),
-            Position = UDim2.new(0, executorIconSize + 4, 0, 2),
-            BackgroundTransparency = 1,
-            Text = "Executor: ...",
-            TextColor3 = Theme.Text,
-            TextSize = executorFontSize,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = column3
-        })
-        
-        local executorVersionFontSize = math.clamp(footerHeight * 0.14, 8, 9)
-        local executorVersionLabel = Create("TextLabel", {
-            Size = UDim2.new(1, -(executorIconSize + 4), 0, footerHeight * 0.4),
-            Position = UDim2.new(0, executorIconSize + 4, 0, footerHeight * 0.52),
-            BackgroundTransparency = 1,
-            Text = "",
-            TextColor3 = Theme.TextDark,
-            TextSize = executorVersionFontSize,
-            Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = column3
-        })
-        
-        task.spawn(function()
-            pcall(function()
-                local executorName = "Desconhecido"
-                local executorVersion = ""
-                
-                if type(identifyexecutor) == "function" then
-                    local success, name, version = pcall(identifyexecutor)
-                    if success and name and name ~= "" then
-                        executorName = name
-                        executorVersion = version or ""
-                    end
-                end
-                
-                if executorName == "Desconhecido" then
-                    if type(syn) == "table" and syn and syn.request then
-                        executorName = "Synapse X"
-                        local success, version = pcall(function() return syn.version end)
-                        if success and version then executorVersion = version end
-                    elseif type(krnl) == "table" and krnl and krnl.loadfile then
-                        executorName = "Krnl"
-                        local success, version = pcall(function() return krnl.version end)
-                        if success and version then executorVersion = version end
-                    elseif type(script) == "table" and script.ExecutionEnvironment then
-                        local success, environment = pcall(script.ExecutionEnvironment)
-                        if success then executorName = environment end
-                    end
-                end
-                
-                if executorName == "Desconhecido" and type(getexecutorname) == "function" then
-                    local success, name = pcall(getexecutorname)
-                    if success and name then executorName = name end
-                end
-                
-                executorNameLabel.Text = "Executor: " .. executorName
-                if executorVersion ~= "" then
-                    executorVersionLabel.Text = "v" .. executorVersion
-                else
-                    local success, build = pcall(function() return game:GetService("Version") end)
-                    if success and build then
-                        executorVersionLabel.Text = "Build: " .. build
-                    else
-                        executorVersionLabel.Text = ""
-                    end
-                end
-            end)
-        end)
-        
-        -- ============================================================
-        -- COLUNA 4: STATUS (FPS, PING, HORA, MEMÓRIA)
-        -- ============================================================
-        local column4 = Create("Frame", {
-            Size = UDim2.new(columnWidths.status, 0, 1, 0),
-            Position = UDim2.new(columnWidths.avatar + columnWidths.game + columnWidths.executor, 0, 0, 0),
-            BackgroundColor3 = Theme.Background,
-            BackgroundTransparency = 0.15,
-            BorderSizePixel = 0,
-            Parent = footer
-        })
-        
-        local statusIconSize = math.clamp(footerHeight * 0.3, 12, 16)
-        local statusIcon = Create("TextLabel", {
-            Size = UDim2.new(0, statusIconSize, 1, 0),
-            BackgroundTransparency = 1,
-            Text = "▸",
-            TextColor3 = Theme.Accent,
-            TextSize = statusIconSize,
-            Font = Enum.Font.SourceSansBold,
-            TextXAlignment = Enum.TextXAlignment.Center,
-            Parent = column4
-        })
-        
-        local statusFontSize = math.clamp(footerHeight * 0.16, 9, 10)
-        local statusLabel = Create("TextLabel", {
-            Size = UDim2.new(1, -(statusIconSize + 4), 0, footerHeight * 0.5),
-            Position = UDim2.new(0, statusIconSize + 4, 0, 2),
-            BackgroundTransparency = 1,
-            Text = "FPS: -- Ping: --ms",
-            TextColor3 = Theme.Text,
-            TextSize = statusFontSize,
-            Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = column4
-        })
-        
-        local extraStatusFontSize = math.clamp(footerHeight * 0.14, 8, 9)
-        local extraStatusLabel = Create("TextLabel", {
-            Size = UDim2.new(1, -(statusIconSize + 4), 0, footerHeight * 0.4),
-            Position = UDim2.new(0, statusIconSize + 4, 0, footerHeight * 0.52),
-            BackgroundTransparency = 1,
-            Text = "",
-            TextColor3 = Theme.TextDark,
-            TextSize = extraStatusFontSize,
-            Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = column4
-        })
-        
-        -- ============================================================
-        -- COLUNA 5: AUTOR
-        -- ============================================================
-        local column5 = Create("Frame", {
-            Size = UDim2.new(columnWidths.author, 0, 1, 0),
-            Position = UDim2.new(1 - columnWidths.author, 0, 0, 0),
-            BackgroundColor3 = Theme.Background,
-            BackgroundTransparency = 0.2,
-            BorderSizePixel = 0,
-            Parent = footer
-        })
-        
-        local authorLabel = Create("TextLabel", {
-            Size = UDim2.new(1, 0, 1, 0),
-            BackgroundTransparency = 1,
-            Text = windowAuthor ~= "" and windowAuthor or "Ravion UI",
-            TextColor3 = Theme.TextDark,
-            TextSize = 10,
-            Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Center,
-            TextYAlignment = Enum.TextYAlignment.Center,
-            Parent = column5
-        })
-        
-        -- ============================================================
-        -- LOOP DE ATUALIZAÇÃO (FPS, PING, HORA, MEMÓRIA)
-        -- ============================================================
-        task.spawn(function()
-            pcall(function()
-                local frameCounter = 0
-                local timeAccumulator = 0
-                local framesPerSecond = 0
-                local pingInMilliseconds = 0
-                
-                local function GetPing()
-                    local stats = game:GetService("Stats")
-                    local network = stats:FindFirstChild("Network")
-                    if network then
-                        local pingValue = network:FindFirstChild("Ping")
-                        if pingValue and pingValue.Value then
-                            return math.floor(pingValue.Value * 1000)
-                        end
-                    end
-                    local performance = stats:FindFirstChild("PerformanceStats")
-                    if performance then
-                        local pingValue = performance:FindFirstChild("Ping")
-                        if pingValue and pingValue.Value then
-                            return math.floor(pingValue.Value * 1000)
-                        end
-                    end
-                    for _, child in ipairs(stats:GetDescendants()) do
-                        if child.Name:lower():find("ping") and child:IsA("NumberValue") then
-                            return math.floor(child.Value * 1000)
-                        end
-                    end
-                    return 0
-                end
-                
-                local function GetMemoryUsage()
-                    local stats = game:GetService("Stats")
-                    local memory = stats:FindFirstChild("Memory")
-                    if memory then
-                        local memoryInMb = memory:FindFirstChild("MemoryUsedMb")
-                        if memoryInMb and memoryInMb.Value then
-                            return memoryInMb.Value
-                        end
-                    end
-                    return 0
-                end
-                
-                RunService.RenderStepped:Connect(function(deltaTime)
-                    pcall(function()
-                        frameCounter = frameCounter + 1
-                        timeAccumulator = timeAccumulator + deltaTime
-                        
-                        if timeAccumulator >= 0.5 then
-                            framesPerSecond = math.floor(frameCounter / timeAccumulator)
-                            frameCounter = 0
-                            timeAccumulator = 0
-                            pingInMilliseconds = GetPing()
-                        end
-                        
-                        statusLabel.Text = string.format("FPS: %d Ping: %dms", framesPerSecond, pingInMilliseconds)
-                        
-                        local currentTime = os.date("*t")
-                        local timeString = string.format("%02d:%02d:%02d", currentTime.hour, currentTime.min, currentTime.sec)
-                        local memory = GetMemoryUsage()
-                        local memoryString = (memory > 0) and string.format("%.1f MB", memory) or "-- MB"
-                        extraStatusLabel.Text = string.format("%s • %s", timeString, memoryString)
-                    end)
-                end)
             end)
         end)
         
