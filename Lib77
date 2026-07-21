@@ -37,6 +37,16 @@ local Theme = {
 }
 
 -- ================================================================
+-- SONS PARA NOTIFICAÇÕES
+-- ================================================================
+local NotificationSounds = {
+    Success = "rbxassetid://9120396752",  -- Som de confirmação (ding)
+    Warning = "rbxassetid://9120397531",  -- Som de alerta
+    Error = "rbxassetid://9120397835",    -- Som de erro (buzzer)
+    Info = "rbxassetid://9120398201"      -- Som neutro (opcional)
+}
+
+-- ================================================================
 -- BIBLIOTECA PRINCIPAL
 -- ================================================================
 local Library = {
@@ -189,91 +199,211 @@ local function SetupNotifications()
 end
 
 SetupNotifications()
-
+-- ================================================================
+-- NOTIFICAÇÃO V2.2 – ÍCONES GOOGLE MATERIAL DESIGN
+-- ================================================================
 function Library:Notify(title, text, duration, notificationType)
     if not NotificationHolder then return end
-    
+
     duration = duration or 3
     notificationType = notificationType or "Info"
-    
-    local colors = {
-        Info = Theme.Accent,
-        Success = Theme.Success,
-        Warning = Theme.Warning,
-        Error = Theme.Error
+
+    -- Cores e ícones (Material Design via ImageLabel)
+    local styles = {
+        Success = {
+            color = Color3.fromRGB(80, 200, 120),
+            icon = "https://fonts.gstatic.com/s/i/materialicons/check_circle/v6/24px.svg",
+            sound = "rbxassetid://9120396752"
+        },
+        Warning = {
+            color = Color3.fromRGB(255, 180, 50),
+            icon = "https://fonts.gstatic.com/s/i/materialicons/warning/v6/24px.svg",
+            sound = "rbxassetid://9120397531"
+        },
+        Error = {
+            color = Color3.fromRGB(255, 80, 80),
+            icon = "https://fonts.gstatic.com/s/i/materialicons/error/v6/24px.svg",
+            sound = "rbxassetid://9120397835"
+        },
+        Info = {
+            color = Color3.fromRGB(100, 150, 255),
+            icon = "https://fonts.gstatic.com/s/i/materialicons/info/v6/24px.svg",
+            sound = "rbxassetid://9120398201"
+        }
     }
-    
+
+    local style = styles[notificationType] or styles.Info
+
+    -- ============================================================
+    -- TOCAR SOM
+    -- ============================================================
+    if style.sound then
+        pcall(function()
+            local sound = Instance.new("Sound")
+            sound.SoundId = style.sound
+            sound.Volume = 0.4
+            sound.Parent = NotificationGui or CoreGui
+            sound:Play()
+            task.delay(sound.TimeLength or 2, function()
+                pcall(sound.Destroy, sound)
+            end)
+        end)
+    end
+
+    -- ============================================================
+    -- NOTIFICAÇÃO – ESTRUTURA PRINCIPAL
+    -- ============================================================
     local notification = Create("Frame", {
-        Size = UDim2.new(1, 0, 0, 70),
-        BackgroundColor3 = Theme.Section,
-        Parent = NotificationHolder
+        Name = "Notification",
+        Size = UDim2.new(1, 0, 0, 80),
+        BackgroundColor3 = Color3.fromRGB(25, 25, 30),
+        BackgroundTransparency = 0.05,
+        BorderSizePixel = 0,
+        Parent = NotificationHolder,
+        ZIndex = 10
     })
     if not notification then return end
-    
-    AddCorner(notification, 8)
-    AddStroke(notification, Theme.Border)
-    
+
+    AddCorner(notification, 12)
+    AddStroke(notification, Color3.fromRGB(50, 50, 60), 1)
+
+    -- ============================================================
+    -- BARRA LATERAL DE COR
+    -- ============================================================
     local accentBar = Create("Frame", {
-        Size = UDim2.new(0, 4, 1, -10),
-        Position = UDim2.new(0, 5, 0, 5),
-        BackgroundColor3 = colors[notificationType] or Theme.Accent,
+        Name = "AccentBar",
+        Size = UDim2.new(0, 6, 1, -12),
+        Position = UDim2.new(0, 6, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = style.color,
         BorderSizePixel = 0,
         Parent = notification
     })
-    AddCorner(accentBar, 2)
-    
-    Create("TextLabel", {
-        Size = UDim2.new(1, -50, 0, 22),
-        Position = UDim2.new(0, 18, 0, 8),
+    AddCorner(accentBar, 3)
+
+    -- ============================================================
+    -- ÍCONE – IMAGEM DO MATERIAL DESIGN (via Google Fonts CDN)
+    -- ============================================================
+    local iconImage = Create("ImageLabel", {
+        Name = "Icon",
+        Size = UDim2.new(0, 32, 0, 32),
+        Position = UDim2.new(0, 24, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
         BackgroundTransparency = 1,
-        Text = title or "Notificação",
-        TextColor3 = Theme.Text,
-        TextSize = 14,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
+        Image = style.icon,
+        ImageColor3 = style.color,
+        ScaleType = Enum.ScaleType.Fit,
         Parent = notification
     })
-    
-    Create("TextLabel", {
-        Size = UDim2.new(1, -25, 0, 32),
-        Position = UDim2.new(0, 18, 0, 30),
+
+    -- ============================================================
+    -- TÍTULO (negrito, maior)
+    -- ============================================================
+    local titleLabel = Create("TextLabel", {
+        Name = "Title",
+        Size = UDim2.new(1, -80, 0, 24),
+        Position = UDim2.new(0, 68, 0, 14),
+        BackgroundTransparency = 1,
+        Text = title or "Notificação",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 16,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = notification
+    })
+
+    -- ============================================================
+    -- TEXTO (menor, cor cinza claro)
+    -- ============================================================
+    local textLabel = Create("TextLabel", {
+        Name = "Text",
+        Size = UDim2.new(1, -80, 0, 28),
+        Position = UDim2.new(0, 68, 0, 40),
         BackgroundTransparency = 1,
         Text = text or "",
-        TextColor3 = Theme.TextDark,
-        TextSize = 12,
+        TextColor3 = Color3.fromRGB(200, 200, 210),
+        TextSize = 13,
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextYAlignment = Enum.TextYAlignment.Top,
         TextWrapped = true,
+        TextTruncate = Enum.TextTruncate.AtEnd,
         Parent = notification
     })
-    
-    local progressBar = Create("Frame", {
-        Size = UDim2.new(1, 0, 0, 3),
-        Position = UDim2.new(0, 0, 1, -3),
-        BackgroundColor3 = colors[notificationType] or Theme.Accent,
+
+    -- ============================================================
+    -- BARRA DE PROGRESSO
+    -- ============================================================
+    local progressBg = Create("Frame", {
+        Name = "ProgressBg",
+        Size = UDim2.new(1, -20, 0, 4),
+        Position = UDim2.new(0, 10, 1, -8),
+        BackgroundColor3 = Color3.fromRGB(45, 45, 55),
         BorderSizePixel = 0,
         Parent = notification
     })
-    
-    notification.Position = UDim2.new(1, 20, 0, 0)
-    Tween(notification, 0.3, {Position = UDim2.new(0, 0, 0, 0)})
-    
-    if progressBar then
-        Tween(progressBar, duration, {Size = UDim2.new(0, 0, 0, 3)})
-    end
-    
-    task.delay(duration, function()
+    AddCorner(progressBg, 2)
+
+    local progressBar = Create("Frame", {
+        Name = "ProgressBar",
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = style.color,
+        BorderSizePixel = 0,
+        Parent = progressBg
+    })
+    AddCorner(progressBar, 2)
+
+    -- ============================================================
+    -- ANIMAÇÃO DE ENTRADA
+    -- ============================================================
+    notification.BackgroundTransparency = 1
+    notification.Position = UDim2.new(1, 30, 0, 0)
+
+    task.spawn(function()
+        Tween(notification, 0.4, {
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundTransparency = 0.05
+        })
+    end)
+
+    -- ============================================================
+    -- ANIMAÇÃO DA BARRA DE PROGRESSO
+    -- ============================================================
+    Tween(progressBar, duration, { Size = UDim2.new(0, 0, 1, 0) })
+
+    -- ============================================================
+    -- AUTO DESTRUIÇÃO
+    -- ============================================================
+    task.delay(duration + 0.2, function()
         if notification and notification.Parent then
-            Tween(notification, 0.3, {Position = UDim2.new(1, 20, 0, 0)})
+            Tween(notification, 0.3, {
+                Position = UDim2.new(1, 30, 0, 0),
+                BackgroundTransparency = 1
+            })
             task.wait(0.35)
             if notification and notification.Parent then
                 notification:Destroy()
             end
         end
     end)
-end
 
+    -- ============================================================
+    -- FECHAR AO CLICAR
+    -- ============================================================
+    notification.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Tween(notification, 0.2, {
+                Position = UDim2.new(1, 30, 0, 0),
+                BackgroundTransparency = 1
+            })
+            task.wait(0.25)
+            if notification and notification.Parent then
+                notification:Destroy()
+            end
+        end
+    end)
+end
 -- ================================================================
 -- CAIXA DE CONFIRMAÇÃO V3 – TEXTO 100% VISÍVEL (CORRIGIDO)
 -- ================================================================
