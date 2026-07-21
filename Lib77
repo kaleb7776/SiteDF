@@ -275,7 +275,7 @@ function Library:Notify(title, text, duration, notificationType)
 end
 
 -- ================================================================
--- CAIXA DE CONFIRMAÇÃO V3 – TEXTO 100% VISÍVEL
+-- CAIXA DE CONFIRMAÇÃO V3 – TEXTO 100% VISÍVEL (CORRIGIDO)
 -- ================================================================
 function Library:Confirm(title, message, callback)
     if not Library._ScreenGui then
@@ -283,17 +283,17 @@ function Library:Confirm(title, message, callback)
         return
     end
 
-    -- Overlay transparente
+    -- Overlay escurecido para destaque do modal
     local overlay = Create("Frame", {
         Name = "ConfirmOverlay",
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundColor3 = Color3.new(0, 0, 0),
-        BackgroundTransparency = 1,
+        BackgroundTransparency = 0.5, -- Leve fundo escuro
         ZIndex = 999,
         Parent = Library._ScreenGui
     })
 
-    -- Diálogo – altura aumentada para 280
+    -- Diálogo principal
     local dialog = Create("Frame", {
         Name = "ConfirmDialog",
         Size = UDim2.new(0, 440, 0, 280),
@@ -306,7 +306,7 @@ function Library:Confirm(title, message, callback)
     AddCorner(dialog, 12)
     AddStroke(dialog, Theme.Border)
 
-    -- Título
+    -- Título (ZIndex corrigido para 1001)
     Create("TextLabel", {
         Size = UDim2.new(1, -20, 0, 30),
         Position = UDim2.new(0, 10, 0, 10),
@@ -316,33 +316,33 @@ function Library:Confirm(title, message, callback)
         TextSize = 18,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 1001,
         Parent = dialog
     })
 
-    -- Linha
+    -- Linha divisória (ZIndex corrigido para 1001)
     Create("Frame", {
         Size = UDim2.new(1, -20, 0, 1),
         Position = UDim2.new(0, 10, 0, 45),
         BackgroundColor3 = Theme.Border,
         BorderSizePixel = 0,
+        ZIndex = 1001,
         Parent = dialog
     })
 
-    -- ============================================================
-    -- MENSAGEM – CORRIGIDA: altura 130, centralizada verticalmente,
-    -- fonte SourceSans para compatibilidade, sem contorno
-    -- ============================================================
+    -- Mensagem (ZIndex corrigido para 1001)
     local msgLabel = Create("TextLabel", {
-        Size = UDim2.new(1, -30, 0, 130),      -- altura suficiente
-        Position = UDim2.new(0, 15, 0, 55),    -- posição Y fixa
+        Size = UDim2.new(1, -30, 0, 130),
+        Position = UDim2.new(0, 15, 0, 55),
         BackgroundTransparency = 1,
         Text = message or "Tem certeza que deseja realizar esta ação?",
-        TextColor3 = Color3.fromRGB(255, 255, 255), -- branco puro
+        TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 14,
-        Font = Enum.Font.SourceSansBold,        -- fonte segura
+        Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Center,
-        TextYAlignment = Enum.TextYAlignment.Center, -- centralizado verticalmente
+        TextYAlignment = Enum.TextYAlignment.Center,
         TextWrapped = true,
+        ZIndex = 1001,
         Parent = dialog
     })
 
@@ -376,7 +376,7 @@ function Library:Confirm(title, message, callback)
     })
     AddCorner(noBtn, 8)
 
-    -- Hover
+    -- Efeitos de Hover nos botões
     yesBtn.MouseEnter:Connect(function()
         Tween(yesBtn, 0.15, {BackgroundColor3 = Theme.Success:Lerp(Color3.new(1,1,1), 0.2)})
     end)
@@ -390,6 +390,7 @@ function Library:Confirm(title, message, callback)
         Tween(noBtn, 0.15, {BackgroundColor3 = Theme.Error})
     end)
 
+    -- Handlers dos botões
     yesBtn.MouseButton1Click:Connect(function()
         overlay:Destroy()
         pcall(callback, true)
