@@ -1103,17 +1103,7 @@ if footer then
         Parent = footer
     })
 end
-    -- Separador
-    local separator = Create("Frame", {
-        Size = UDim2.new(1, -20, 0, 1),
-        Position = UDim2.new(0, 10, 0, -1),
-        BackgroundColor3 = Theme.Border,
-        BorderSizePixel = 0,
-        Parent = footer
-    })
-end
-    
-    if mobileButton then
+     if mobileButton then
         mobileButton.MouseButton1Click:Connect(function()
             Library.Open = true
             mainFrame.Visible = true
