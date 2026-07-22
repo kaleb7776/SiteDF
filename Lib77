@@ -822,8 +822,8 @@ Library._MobileButton = mobileButton
         Parent = mainFrame
     })
 
- -- ============================================================
--- RODAPÉ – COLUNAS COM TEXTOS MAIORES E MAIS ESPAÇO
+-- ============================================================
+-- RODAPÉ – 5 COLUNAS IGUALMENTE ESPAÇADAS (20% cada)
 -- ============================================================
 local footer = Create("Frame", {
     Name = "Footer",
@@ -848,17 +848,21 @@ if footer then
         Parent = footer
     })
 
+    -- Definição: 5 colunas, cada uma com 20% da largura
+    local colWidth = 0.20
+    local positions = {0, 0.20, 0.40, 0.60, 0.80}
+
     -- ============================================================
-    -- COLUNA 1: AVATAR + NOME + JOGO (largura 18%)
+    -- COLUNA 1: AVATAR + NOME + "Classic Is Back"
     -- ============================================================
     local col1 = Create("Frame", {
-        Size = UDim2.new(0.18, 0, 1, 0),
-        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(colWidth, 0, 1, 0),
+        Position = UDim2.new(positions[1], 0, 0, 0),
         BackgroundTransparency = 1,
         Parent = footer
     })
 
-    local avatarSize = math.clamp(footerHeight * 0.5, 30, 38) -- avatar um pouco maior
+    local avatarSize = math.clamp(footerHeight * 0.5, 30, 38)
     local avatarImage = Create("ImageLabel", {
         Size = UDim2.new(0, avatarSize, 0, avatarSize),
         Position = UDim2.new(0, 6, 0.5, -avatarSize/2),
@@ -882,116 +886,150 @@ if footer then
         end)
     end
 
-    -- Nome do jogador (linha de cima) – fonte MAIOR
     local nameLabel = Create("TextLabel", {
         Size = UDim2.new(1, -(avatarSize + 8), 0, footerHeight * 0.5),
         Position = UDim2.new(0, avatarSize + 8, 0, 2),
         BackgroundTransparency = 1,
         Text = (LocalPlayer and LocalPlayer.Name) or "??",
         TextColor3 = Theme.Text,
-        TextSize = math.clamp(footerHeight * 0.26, 13, 16), -- AUMENTADO
+        TextSize = math.clamp(footerHeight * 0.26, 13, 16),
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = col1
     })
 
-    -- Nome do jogo (linha de baixo) – fonte MAIOR
-    local gameLabel = Create("TextLabel", {
+    local classicLabel = Create("TextLabel", {
         Size = UDim2.new(1, -(avatarSize + 8), 0, footerHeight * 0.4),
         Position = UDim2.new(0, avatarSize + 8, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
-        Text = "Carregando jogo...",
-        TextColor3 = Theme.TextDark,
-        TextSize = math.clamp(footerHeight * 0.2, 11, 14), -- AUMENTADO
-        Font = Enum.Font.Gotham,
+        Text = "Classic Is Back",
+        TextColor3 = Theme.Accent,
+        TextSize = math.clamp(footerHeight * 0.18, 11, 13),
+        Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = col1
     })
+
+    -- ============================================================
+    -- COLUNA 2: JOGO + PLAYERS ONLINE
+    -- ============================================================
+    local col2 = Create("Frame", {
+        Size = UDim2.new(colWidth, 0, 1, 0),
+        Position = UDim2.new(positions[2], 0, 0, 0),
+        BackgroundTransparency = 1,
+        Parent = footer
+    })
+
+    local gameLabel = Create("TextLabel", {
+        Size = UDim2.new(1, 0, 0, footerHeight * 0.5),
+        Position = UDim2.new(0, 0, 0, 2),
+        BackgroundTransparency = 1,
+        Text = "Carregando jogo...",
+        TextColor3 = Theme.Text,
+        TextSize = math.clamp(footerHeight * 0.22, 12, 15),
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = col2
+    })
+
+    local playersLabel = Create("TextLabel", {
+        Size = UDim2.new(1, 0, 0, footerHeight * 0.4),
+        Position = UDim2.new(0, 0, 0, footerHeight * 0.52),
+        BackgroundTransparency = 1,
+        Text = "0 Players Online",
+        TextColor3 = Theme.TextDark,
+        TextSize = math.clamp(footerHeight * 0.18, 10, 13),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = col2
+    })
+
+    -- Atualiza nome do jogo e contador de players
     task.spawn(function()
         pcall(function()
             local info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
             gameLabel.Text = info and info.Name or game.Name or "Jogo Desconhecido"
         end)
+        while wait(2) do
+            local count = #Players:GetPlayers()
+            playersLabel.Text = string.format("%d Players Online", count)
+        end
     end)
 
     -- ============================================================
-    -- COLUNA 2: EXECUTOR + VERSÃO (largura 25%)
+    -- COLUNA 3: EXECUTOR + VERSÃO
     -- ============================================================
-    local col2 = Create("Frame", {
-        Size = UDim2.new(0.25, 0, 1, 0),
-        Position = UDim2.new(0.19, 0, 0, 0), -- deslocado para dar espaço
+    local col3 = Create("Frame", {
+        Size = UDim2.new(colWidth, 0, 1, 0),
+        Position = UDim2.new(positions[3], 0, 0, 0),
         BackgroundTransparency = 1,
         Parent = footer
     })
 
-    -- Executor (linha de cima)
     local executorLabel = Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, footerHeight * 0.5),
         Position = UDim2.new(0, 0, 0, 2),
         BackgroundTransparency = 1,
         Text = "Executor: Carregando...",
         TextColor3 = Theme.Text,
-        TextSize = math.clamp(footerHeight * 0.22, 12, 15), -- AUMENTADO
+        TextSize = math.clamp(footerHeight * 0.22, 12, 15),
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = col2
+        Parent = col3
     })
 
-    -- Versão (linha de baixo)
     local versionLabel = Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, footerHeight * 0.4),
         Position = UDim2.new(0, 0, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
         Text = "",
         TextColor3 = Theme.TextDark,
-        TextSize = math.clamp(footerHeight * 0.18, 10, 13), -- AUMENTADO
+        TextSize = math.clamp(footerHeight * 0.18, 10, 13),
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = col2
+        Parent = col3
     })
 
     -- ============================================================
-    -- COLUNA 3: PING + FPS (largura 18%)
+    -- COLUNA 4: PING + FPS
     -- ============================================================
-    local col3 = Create("Frame", {
-        Size = UDim2.new(0.18, 0, 1, 0),
-        Position = UDim2.new(0.46, 0, 0, 0), -- deslocado
+    local col4 = Create("Frame", {
+        Size = UDim2.new(colWidth, 0, 1, 0),
+        Position = UDim2.new(positions[4], 0, 0, 0),
         BackgroundTransparency = 1,
         Parent = footer
     })
 
-    -- Ping (linha de cima)
     local pingLabel = Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, footerHeight * 0.5),
         Position = UDim2.new(0, 0, 0, 2),
         BackgroundTransparency = 1,
         Text = "Ping: --ms",
         TextColor3 = Theme.Text,
-        TextSize = math.clamp(footerHeight * 0.22, 12, 15), -- AUMENTADO
+        TextSize = math.clamp(footerHeight * 0.22, 12, 15),
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = col3
+        Parent = col4
     })
 
-    -- FPS (linha de baixo)
     local fpsLabel = Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, footerHeight * 0.4),
         Position = UDim2.new(0, 0, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
         Text = "FPS: --",
         TextColor3 = Theme.TextDark,
-        TextSize = math.clamp(footerHeight * 0.18, 10, 13), -- AUMENTADO
+        TextSize = math.clamp(footerHeight * 0.18, 10, 13),
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = col3
+        Parent = col4
     })
 
     -- ============================================================
-    -- COLUNA 4: • RAVION UI (largura 13%)
+    -- COLUNA 5: • RAVION UI
     -- ============================================================
-    local col4 = Create("Frame", {
-        Size = UDim2.new(0.13, 0, 1, 0),
-        Position = UDim2.new(0.66, 0, 0, 0), -- deslocado
+    local col5 = Create("Frame", {
+        Size = UDim2.new(colWidth, 0, 1, 0),
+        Position = UDim2.new(positions[5], 0, 0, 0),
         BackgroundTransparency = 1,
         Parent = footer
     })
@@ -1001,11 +1039,11 @@ if footer then
         BackgroundTransparency = 1,
         Text = "• RAVION UI",
         TextColor3 = Theme.Accent,
-        TextSize = math.clamp(footerHeight * 0.28, 14, 18), -- MAIOR
+        TextSize = math.clamp(footerHeight * 0.28, 14, 18),
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Center,
         TextYAlignment = Enum.TextYAlignment.Center,
-        Parent = col4
+        Parent = col5
     })
 
     -- ============================================================
