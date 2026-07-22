@@ -477,32 +477,52 @@ function Library:CreateWindow(configuration, toggleKey)
     Library._ScreenGui = screenGui
     Library._NotificationGui = NotificationGui
 
-    local mobileButton = Create("TextButton", {
-        Name = "MobileButton",
-        Size = UDim2.new(0, 50, 0, 50),
-        Position = UDim2.new(0, 20, 0.5, -25),
-        BackgroundColor3 = Theme.Section,
-        Text = "",
-        AutoButtonColor = false,
-        Visible = false,
-        ZIndex = 100,
-        Parent = screenGui
-    })
-    if mobileButton then
-        AddCorner(mobileButton, 25)
-        AddStroke(mobileButton, Theme.Accent, 2)
-        MakeDraggable(mobileButton, mobileButton)
-        
-        local image = Instance.new("ImageLabel")
-        image.Size = UDim2.new(1, -8, 1, -8)
-        image.Position = UDim2.new(0, 4, 0, 4)
-        image.BackgroundTransparency = 1
-        image.Image = "https://i.postimg.cc/WbFVrmNQ/logo1-removebg-preview-(1).png"
-        image.ScaleType = Enum.ScaleType.Fit
-        image.Parent = mobileButton
-    end
-    Library._MobileButton = mobileButton
+  -- ============================================================
+-- BOTÃO FLUTUANTE (MOBILE) – USA A MESMA LOGO DA TOP BAR
+-- ============================================================
+local mobileButton = Create("TextButton", {
+    Name = "MobileButton",
+    Size = UDim2.new(0, 50, 0, 50),
+    Position = UDim2.new(0, 20, 0.5, -25),
+    BackgroundColor3 = Theme.Section,
+    Text = "",
+    AutoButtonColor = false,
+    Visible = false,
+    ZIndex = 100,
+    Parent = screenGui
+})
+if mobileButton then
+    AddCorner(mobileButton, 25)
+    AddStroke(mobileButton, Theme.Accent, 2)
+    MakeDraggable(mobileButton, mobileButton)
 
+    -- ============================================================
+    -- USA A MESMA LÓGICA DO LOGO DA TOP BAR
+    -- ============================================================
+    local iconText = windowIcon or ""
+    if iconText ~= "" then
+        -- Se o usuário definiu um ícone (ex: "⚔️"), usa como texto
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.Text = iconText
+        textLabel.TextColor3 = Theme.Text
+        textLabel.TextSize = 28
+        textLabel.Font = Enum.Font.SourceSansBold
+        textLabel.TextScaled = true
+        textLabel.Parent = mobileButton
+    else
+        -- Senão, tenta carregar a imagem padrão (logo da Classic)
+        local img = Instance.new("ImageLabel")
+        img.Size = UDim2.new(1, -8, 1, -8)
+        img.Position = UDim2.new(0, 4, 0, 4)
+        img.BackgroundTransparency = 1
+        img.Image = "https://i.postimg.cc/WbFVrmNQ/logo1-removebg-preview-(1).png"  -- LOGO DA CLASSIC
+        img.ScaleType = Enum.ScaleType.Fit
+        img.Parent = mobileButton
+    end
+end
+Library._MobileButton = mobileButton
     local useScale = true
     local scaleX = windowSize.X.Scale
     local scaleY = windowSize.Y.Scale
@@ -802,8 +822,8 @@ function Library:CreateWindow(configuration, toggleKey)
         Parent = mainFrame
     })
 
-    -- ============================================================
--- RODAPÉ – COLUNAS (AVATAR, NOME+JOGO, EXECUTOR+VERSAO, PING+FPS, RAVION UI)
+ -- ============================================================
+-- RODAPÉ – COLUNAS COM TEXTOS MAIORES E MAIS ESPAÇO
 -- ============================================================
 local footer = Create("Frame", {
     Name = "Footer",
@@ -829,16 +849,16 @@ if footer then
     })
 
     -- ============================================================
-    -- COLUNA 1: AVATAR + NOME + JOGO (15% da largura)
+    -- COLUNA 1: AVATAR + NOME + JOGO (largura 18%)
     -- ============================================================
     local col1 = Create("Frame", {
-        Size = UDim2.new(0.15, 0, 1, 0),
+        Size = UDim2.new(0.18, 0, 1, 0),
         Position = UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 1,
         Parent = footer
     })
 
-    local avatarSize = math.clamp(footerHeight * 0.5, 28, 34)
+    local avatarSize = math.clamp(footerHeight * 0.5, 30, 38) -- avatar um pouco maior
     local avatarImage = Create("ImageLabel", {
         Size = UDim2.new(0, avatarSize, 0, avatarSize),
         Position = UDim2.new(0, 6, 0.5, -avatarSize/2),
@@ -862,25 +882,27 @@ if footer then
         end)
     end
 
+    -- Nome do jogador (linha de cima) – fonte MAIOR
     local nameLabel = Create("TextLabel", {
         Size = UDim2.new(1, -(avatarSize + 8), 0, footerHeight * 0.5),
         Position = UDim2.new(0, avatarSize + 8, 0, 2),
         BackgroundTransparency = 1,
         Text = (LocalPlayer and LocalPlayer.Name) or "??",
         TextColor3 = Theme.Text,
-        TextSize = math.clamp(footerHeight * 0.22, 11, 14),
+        TextSize = math.clamp(footerHeight * 0.26, 13, 16), -- AUMENTADO
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = col1
     })
 
+    -- Nome do jogo (linha de baixo) – fonte MAIOR
     local gameLabel = Create("TextLabel", {
         Size = UDim2.new(1, -(avatarSize + 8), 0, footerHeight * 0.4),
         Position = UDim2.new(0, avatarSize + 8, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
         Text = "Carregando jogo...",
         TextColor3 = Theme.TextDark,
-        TextSize = math.clamp(footerHeight * 0.16, 9, 11),
+        TextSize = math.clamp(footerHeight * 0.2, 11, 14), -- AUMENTADO
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = col1
@@ -893,79 +915,83 @@ if footer then
     end)
 
     -- ============================================================
-    -- COLUNA 2: EXECUTOR + VERSÃO (22% da largura)
+    -- COLUNA 2: EXECUTOR + VERSÃO (largura 25%)
     -- ============================================================
     local col2 = Create("Frame", {
-        Size = UDim2.new(0.22, 0, 1, 0),
-        Position = UDim2.new(0.17, 0, 0, 0),
+        Size = UDim2.new(0.25, 0, 1, 0),
+        Position = UDim2.new(0.19, 0, 0, 0), -- deslocado para dar espaço
         BackgroundTransparency = 1,
         Parent = footer
     })
 
+    -- Executor (linha de cima)
     local executorLabel = Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, footerHeight * 0.5),
         Position = UDim2.new(0, 0, 0, 2),
         BackgroundTransparency = 1,
         Text = "Executor: Carregando...",
         TextColor3 = Theme.Text,
-        TextSize = math.clamp(footerHeight * 0.18, 10, 12),
+        TextSize = math.clamp(footerHeight * 0.22, 12, 15), -- AUMENTADO
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = col2
     })
 
+    -- Versão (linha de baixo)
     local versionLabel = Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, footerHeight * 0.4),
         Position = UDim2.new(0, 0, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
         Text = "",
         TextColor3 = Theme.TextDark,
-        TextSize = math.clamp(footerHeight * 0.14, 8, 10),
+        TextSize = math.clamp(footerHeight * 0.18, 10, 13), -- AUMENTADO
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = col2
     })
 
     -- ============================================================
-    -- COLUNA 3: PING + FPS (15% da largura)
+    -- COLUNA 3: PING + FPS (largura 18%)
     -- ============================================================
     local col3 = Create("Frame", {
-        Size = UDim2.new(0.15, 0, 1, 0),
-        Position = UDim2.new(0.41, 0, 0, 0),
+        Size = UDim2.new(0.18, 0, 1, 0),
+        Position = UDim2.new(0.46, 0, 0, 0), -- deslocado
         BackgroundTransparency = 1,
         Parent = footer
     })
 
+    -- Ping (linha de cima)
     local pingLabel = Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, footerHeight * 0.5),
         Position = UDim2.new(0, 0, 0, 2),
         BackgroundTransparency = 1,
         Text = "Ping: --ms",
         TextColor3 = Theme.Text,
-        TextSize = math.clamp(footerHeight * 0.18, 10, 12),
+        TextSize = math.clamp(footerHeight * 0.22, 12, 15), -- AUMENTADO
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = col3
     })
 
+    -- FPS (linha de baixo)
     local fpsLabel = Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, footerHeight * 0.4),
         Position = UDim2.new(0, 0, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
         Text = "FPS: --",
         TextColor3 = Theme.TextDark,
-        TextSize = math.clamp(footerHeight * 0.14, 8, 10),
+        TextSize = math.clamp(footerHeight * 0.18, 10, 13), -- AUMENTADO
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = col3
     })
 
     -- ============================================================
-    -- COLUNA 4: • RAVION UI (com bolinha estilizada, 12% da largura)
+    -- COLUNA 4: • RAVION UI (largura 13%)
     -- ============================================================
     local col4 = Create("Frame", {
-        Size = UDim2.new(0.12, 0, 1, 0),
-        Position = UDim2.new(0.58, 0, 0, 0),
+        Size = UDim2.new(0.13, 0, 1, 0),
+        Position = UDim2.new(0.66, 0, 0, 0), -- deslocado
         BackgroundTransparency = 1,
         Parent = footer
     })
@@ -975,7 +1001,7 @@ if footer then
         BackgroundTransparency = 1,
         Text = "• RAVION UI",
         TextColor3 = Theme.Accent,
-        TextSize = math.clamp(footerHeight * 0.24, 12, 16),
+        TextSize = math.clamp(footerHeight * 0.28, 14, 18), -- MAIOR
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Center,
         TextYAlignment = Enum.TextYAlignment.Center,
@@ -1068,6 +1094,15 @@ if footer then
         end)
     end)
 
+    -- Separador
+    local separator = Create("Frame", {
+        Size = UDim2.new(1, -20, 0, 1),
+        Position = UDim2.new(0, 10, 0, -1),
+        BackgroundColor3 = Theme.Border,
+        BorderSizePixel = 0,
+        Parent = footer
+    })
+end
     -- Separador
     local separator = Create("Frame", {
         Size = UDim2.new(1, -20, 0, 1),
