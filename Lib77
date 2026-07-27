@@ -484,6 +484,91 @@ function Library:CreateWindow(configuration, toggleKey)
     local windowMaxSize = configuration.MaxSize or Vector2.new(1000, 800)
     local footerHeight = configuration.FooterHeight or 50
     
+    -- =====================================================================
+-- PERSONALIZA NOME DO JOGO PARA "ILHA BELA" QUANDO FOR DETECTADO
+-- =====================================================================
+local function IsIlhaBelaGame()
+    local gameName = game.Name or ""
+    return gameName:lower():find("ilha bela") ~= nil
+end
+
+if IsIlhaBelaGame() then
+    task.spawn(function()
+        -- Aguarda o footer ser criado
+        local footer = nil
+        repeat
+            task.wait(0.1)
+            footer = Library._MainFrame and Library._MainFrame:FindFirstChild("Footer")
+        until footer
+
+        -- Função para encontrar e modificar o label do jogo
+        local function fixGameLabel()
+            local gameLabel = nil
+            -- Procura por um TextLabel que contenha "Carregando jogo..." ou o nome do jogo atual
+            for _, child in pairs(footer:GetDescendants()) do
+                if child:IsA("TextLabel") then
+                    local text = child.Text or ""
+                    if text:find("Carregando jogo") or text:find(game.Name) or text:find("Roleplay") or text:find("Ilha") then
+                        gameLabel = child
+                        break
+                    end
+                end
+            end
+            if gameLabel then
+                gameLabel.Text = "Ilha Bela"
+                print("[Footer] Nome do jogo alterado para: Ilha Bela")
+            else
+                -- Tenta achar por posição (coluna 2, label superior) como fallback
+                for _, child in pairs(footer:GetChildren()) do
+                    if child:IsA("Frame") and child.Position.X.Scale >= 0.19 and child.Position.X.Scale <= 0.21 then
+                        for _, sub in pairs(child:GetChildren()) do
+                            if sub:IsA("TextLabel") and sub.Size.Y.Scale >= 0.4 then
+                                gameLabel = sub
+                                break
+                            end
+                        end
+                    end
+                    if gameLabel then break end
+                end
+                if gameLabel then
+                    gameLabel.Text = "Ilha Bela"
+                    print("[Footer] Nome do jogo alterado (fallback) para: Ilha Bela")
+                end
+            end
+        end
+
+        -- Executa uma vez agora
+        fixGameLabel()
+
+        -- Monitora mudanças futuras no footer (caso a Lib77 atualize o label depois)
+        footer.DescendantAdded:Connect(function(child)
+            if child:IsA("TextLabel") then
+                local text = child.Text or ""
+                if text:find("Carregando jogo") or text:find(game.Name) or text:find("Roleplay") or text:find("Ilha") then
+                    task.wait(0.1) -- espera a Lib77 terminar de definir o texto
+                    child.Text = "Ilha Bela"
+                end
+            end
+        end)
+
+        -- Também monitora se o footer for recriado (caso a Lib77 faça isso)
+        Library._MainFrame.ChildAdded:Connect(function(child)
+            if child.Name == "Footer" then
+                footer = child
+                task.wait(0.1)
+                fixGameLabel()
+                -- Reaplica o monitoramento no novo footer
+                footer.DescendantAdded:Connect(function(desc)
+                    if desc:IsA("TextLabel") and (desc.Text:find("Carregando jogo") or desc.Text:find(game.Name) or desc.Text:find("Roleplay")) then
+                        task.wait(0.1)
+                        desc.Text = "Ilha Bela"
+                    end
+                end)
+            end
+        end)
+    end)
+end
+
     -- ============================================================
     -- CONTROLE DE EXIBIÇÃO DO RODAPÉ
     -- ============================================================
