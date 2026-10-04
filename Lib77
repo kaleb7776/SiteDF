@@ -1,8 +1,6 @@
 -- ================================================================
--- SKECH UI - Biblioteca completa (tema vermelho/preto)
--- Estilo: SKECH [beta] | Estrutura baseada em Ravion UI
--- Suporta: Categories, Tabs, Columns, Sections, Toggle, Checkbox,
---          Slider, Dropdown, Keybind, Textbox, ColorPicker, Button
+-- CLASSIC UI - Biblioteca completa (tema vermelho/preto)
+-- Estilo: Classic [beta] | ToggleKey: RightControl
 -- ================================================================
 
 local Players          = game:GetService("Players")
@@ -15,7 +13,7 @@ local LocalPlayer = Players.LocalPlayer
 local IsMobile    = UserInputService.TouchEnabled
 
 -- ================================================================
--- TEMA SKECH (PRETO + VERMELHO)
+-- TEMA CLASSIC (PRETO + VERMELHO)
 -- ================================================================
 local Theme = {
     Background   = Color3.fromRGB(10, 10, 10),
@@ -47,7 +45,6 @@ local Library = {
     Flags         = {},
     Open          = true,
     Keybind       = Enum.KeyCode.RightControl,
-    ToggleKeybind = Enum.KeyCode.RightShift,
     _ScreenGui    = nil,
     _MainFrame    = nil,
     _MobileButton = nil,
@@ -132,14 +129,58 @@ local function Draggable(handle, frame)
     end)
 end
 
+-- Detecta se ícone é asset ID ou texto
+local function IsAssetId(icon)
+    if type(icon) == "number" then return true end
+    if type(icon) == "string" and icon:match("^rbxassetid://") then return true end
+    return false
+end
+
+-- Cria ícone (ImageLabel se asset, TextLabel se texto)
+local function MakeIcon(parent, icon, size, pos, color, defaultText)
+    size = size or 16
+    color = color or Theme.TextDim
+    if icon and icon ~= "" and icon ~= nil and IsAssetId(icon) then
+        return Create("ImageLabel", {
+            Size = UDim2.new(0, size, 0, size),
+            Position = pos,
+            BackgroundTransparency = 1,
+            Image = (type(icon) == "number") and ("rbxassetid://" .. icon) or icon,
+            ImageColor3 = color,
+            ScaleType = Enum.ScaleType.Fit,
+            Parent = parent
+        })
+    else
+        return Create("TextLabel", {
+            Size = UDim2.new(0, size + 4, 1, 0),
+            Position = pos,
+            BackgroundTransparency = 1,
+            Text = (icon and icon ~= "" and icon) or defaultText or "",
+            TextColor3 = color,
+            TextSize = 13,
+            Font = Enum.Font.GothamBold,
+            Parent = parent
+        })
+    end
+end
+
+local function SetIconColor(iconInst, color, isImage)
+    if not iconInst then return end
+    if iconInst:IsA("ImageLabel") then
+        Tween(iconInst, 0.2, {ImageColor3 = color})
+    else
+        Tween(iconInst, 0.2, {TextColor3 = color})
+    end
+end
+
 -- ================================================================
 -- NOTIFICAÇÕES
 -- ================================================================
 local NotificationHolder = nil
 
-local function SetupNotifications(parent)
+local function SetupNotifications()
     local gui = Create("ScreenGui", {
-        Name = "SketchNotifications",
+        Name = "ClassicNotifications",
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
     })
@@ -235,19 +276,18 @@ end
 -- ================================================================
 function Library:CreateWindow(config)
     config = config or {}
-    local title   = config.Title or "SKECH"
-    local sub     = config.Subtitle or "beta"
-    local footer  = config.Footer or "SKECH [beta]"
+    local title   = config.Title or "CLASSIC"
+    local footer  = config.Footer or "Classic [beta]"
     local size    = config.Size or UDim2.new(0, 780, 0, 480)
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
 
     Library.Keybind = toggleKey
 
     local parent = GetSafeParent()
-    SetupNotifications(parent)
+    SetupNotifications()
 
     local gui = Create("ScreenGui", {
-        Name = "SketchUI",
+        Name = "ClassicUI",
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
         IgnoreGuiInset = true
@@ -257,7 +297,6 @@ function Library:CreateWindow(config)
     if not ok then gui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
     Library._ScreenGui = gui
 
-    -- Frame principal
     local main = Create("Frame", {
         Name = "Main",
         Size = size,
@@ -273,7 +312,6 @@ function Library:CreateWindow(config)
 
     -- Barra vermelha no topo
     local topGlow = Create("Frame", {
-        Name = "TopGlow",
         Size = UDim2.new(1, 0, 0, 2),
         BackgroundColor3 = Theme.Accent,
         BorderSizePixel = 0,
@@ -282,7 +320,7 @@ function Library:CreateWindow(config)
     Corner(topGlow, 8)
 
     -- ============================================================
-    -- HEADER (logo SKECH)
+    -- HEADER
     -- ============================================================
     local header = Create("Frame", {
         Name = "Header",
@@ -292,7 +330,7 @@ function Library:CreateWindow(config)
         Parent = main
     })
     Corner(header, 8)
-    local headerFix = Create("Frame", {
+    Create("Frame", {
         Size = UDim2.new(1, 0, 0, 12),
         Position = UDim2.new(0, 0, 1, -12),
         BackgroundColor3 = Theme.TopBar,
@@ -301,7 +339,7 @@ function Library:CreateWindow(config)
     })
     Draggable(header, main)
 
-    -- "SKECH" com estilo (linha + texto)
+    -- Logo CLASSIC
     local logoFrame = Create("Frame", {
         Name = "Logo",
         Size = UDim2.new(0, 140, 1, 0),
@@ -309,22 +347,18 @@ function Library:CreateWindow(config)
         BackgroundTransparency = 1,
         Parent = header
     })
-
-    local logoText = Create("TextLabel", {
+    Create("TextLabel", {
         Size = UDim2.new(0, 120, 1, 0),
         BackgroundTransparency = 1,
-        Text = "SKECH",
+        Text = "CLASSIC",
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 26,
+        TextSize = 22,
         Font = Enum.Font.GothamBlack,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTransparency = 0.35,
         Parent = logoFrame
     })
-
-    -- Traço vermelho cortando o logo
-    local logoStreak = Create("Frame", {
-        Name = "Streak",
+    local streak = Create("Frame", {
         Size = UDim2.new(0, 110, 0, 3),
         Position = UDim2.new(0, 5, 0.5, -2),
         BackgroundColor3 = Theme.Accent,
@@ -332,9 +366,9 @@ function Library:CreateWindow(config)
         Rotation = -8,
         Parent = logoFrame
     })
-    Corner(logoStreak, 2)
+    Corner(streak, 2)
 
-    -- Texto da aba ativa (no meio do header)
+    -- Título da aba ativa
     local tabTitleLabel = Create("TextLabel", {
         Name = "TabTitle",
         Size = UDim2.new(0, 200, 1, 0),
@@ -396,7 +430,7 @@ function Library:CreateWindow(config)
     -- ============================================================
     local sidebar = Create("Frame", {
         Name = "Sidebar",
-        Size = UDim2.new(0, 170, 1, -42 - 24),
+        Size = UDim2.new(0, 170, 1, -42 - 42),
         Position = UDim2.new(0, 0, 0, 42),
         BackgroundColor3 = Theme.Sidebar,
         BorderSizePixel = 0,
@@ -430,11 +464,11 @@ function Library:CreateWindow(config)
     end)
 
     -- ============================================================
-    -- ÁREA DE CONTEÚDO
+    -- CONTEÚDO
     -- ============================================================
     local content = Create("Frame", {
         Name = "Content",
-        Size = UDim2.new(1, -170, 1, -42 - 24),
+        Size = UDim2.new(1, -170, 1, -42 - 42),
         Position = UDim2.new(0, 170, 0, 42),
         BackgroundTransparency = 1,
         ClipsDescendants = true,
@@ -442,26 +476,74 @@ function Library:CreateWindow(config)
     })
 
     -- ============================================================
-    -- RODAPÉ
+    -- RODAPÉ (avatar + nick + ID + texto classic)
     -- ============================================================
     local footerFrame = Create("Frame", {
         Name = "Footer",
-        Size = UDim2.new(1, 0, 0, 24),
-        Position = UDim2.new(0, 0, 1, -24),
+        Size = UDim2.new(1, 0, 0, 42),
+        Position = UDim2.new(0, 0, 1, -42),
         BackgroundColor3 = Theme.TopBar,
         BorderSizePixel = 0,
         Parent = main
     })
     Corner(footerFrame, 8)
 
+    -- Avatar
+    local avatar = Create("ImageLabel", {
+        Name = "Avatar",
+        Size = UDim2.new(0, 32, 0, 32),
+        Position = UDim2.new(0, 10, 0.5, -16),
+        BackgroundColor3 = Theme.Element,
+        BorderSizePixel = 0,
+        Image = string.format(
+            "https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=60&height=60&format=png",
+            LocalPlayer.UserId
+        ),
+        Parent = footerFrame
+    })
+    Corner(avatar, 16)
+    Stroke(avatar, Theme.Accent, 1.5)
+
+    -- Nome do jogador
     Create("TextLabel", {
-        Size = UDim2.new(1, 0, 1, 0),
+        Name = "Name",
+        Size = UDim2.new(0, 260, 0, 14),
+        Position = UDim2.new(0, 50, 0, 6),
+        BackgroundTransparency = 1,
+        Text = LocalPlayer.Name,
+        TextColor3 = Theme.Text,
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = footerFrame
+    })
+
+    -- ID do jogador (embaixo do nome, pequenininho)
+    Create("TextLabel", {
+        Name = "Id",
+        Size = UDim2.new(0, 260, 0, 12),
+        Position = UDim2.new(0, 50, 0, 20),
+        BackgroundTransparency = 1,
+        Text = "ID: " .. tostring(LocalPlayer.UserId),
+        TextColor3 = Theme.TextDim,
+        TextSize = 10,
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = footerFrame
+    })
+
+    -- Texto à direita
+    Create("TextLabel", {
+        Name = "FooterText",
+        Size = UDim2.new(0, 320, 1, 0),
+        Position = UDim2.new(1, -330, 0, 0),
         BackgroundTransparency = 1,
         Text = footer,
         TextColor3 = Theme.TextDark,
         TextSize = 11,
         Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Center,
+        TextXAlignment = Enum.TextXAlignment.Right,
         Parent = footerFrame
     })
 
@@ -471,7 +553,6 @@ function Library:CreateWindow(config)
     local Window = {}
     Library._Categories = {}
 
-    -- Cria categoria (título cinza na sidebar)
     function Window:AddCategory(name)
         local catLabel = Create("TextLabel", {
             Name = "Cat_" .. name,
@@ -491,7 +572,6 @@ function Library:CreateWindow(config)
         return catLabel
     end
 
-    -- Cria aba
     function Window:AddTab(name, icon)
         icon = icon or ""
 
@@ -506,7 +586,7 @@ function Library:CreateWindow(config)
         })
         Corner(tabBtn, 5)
 
-        -- Barra vermelha lateral (indicador de aba ativa)
+        -- Barra lateral vermelha
         local tabBar = Create("Frame", {
             Name = "Bar",
             Size = UDim2.new(0, 3, 0, 0),
@@ -519,22 +599,13 @@ function Library:CreateWindow(config)
         })
         Corner(tabBar, 2)
 
-        -- Ícone
+        -- Ícone (texto ou asset)
         local tabIcon = nil
         if icon ~= "" then
-            tabIcon = Create("TextLabel", {
-                Size = UDim2.new(0, 22, 1, 0),
-                Position = UDim2.new(0, 8, 0, 0),
-                BackgroundTransparency = 1,
-                Text = icon,
-                TextColor3 = Theme.TextDim,
-                TextSize = 13,
-                Font = Enum.Font.GothamBold,
-                Parent = tabBtn
-            })
+            tabIcon = MakeIcon(tabBtn, icon, 16, UDim2.new(0, 10, 0.5, -8), Theme.TextDim, "")
         end
 
-        -- Nome da aba
+        -- Nome
         local tabLabel = Create("TextLabel", {
             Size = UDim2.new(1, icon ~= "" and -35 or -15, 1, 0),
             Position = UDim2.new(0, icon ~= "" and 32 or 10, 0, 0),
@@ -547,7 +618,7 @@ function Library:CreateWindow(config)
             Parent = tabBtn
         })
 
-        -- Página da aba
+        -- Página
         local tabPage = Create("ScrollingFrame", {
             Name = "Page_" .. name,
             Size = UDim2.new(1, 0, 1, 0),
@@ -575,24 +646,22 @@ function Library:CreateWindow(config)
             tabPage.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 20)
         end)
 
-        local tabData = {
+        Library._Tabs[name] = {
             Button = tabBtn,
             Bar = tabBar,
             Icon = tabIcon,
             Label = tabLabel,
             Page = tabPage,
         }
-        Library._Tabs[name] = tabData
 
         local function Activate()
-            -- Desativa aba atual
             if Library._ActiveTab and Library._ActiveTab ~= name then
                 local old = Library._Tabs[Library._ActiveTab]
                 if old then
                     old.Page.Visible = false
                     if old.Bar then Tween(old.Bar, 0.2, {Size = UDim2.new(0, 3, 0, 0)}) end
                     if old.Label then Tween(old.Label, 0.2, {TextColor3 = Theme.TextDim}) end
-                    if old.Icon then Tween(old.Icon, 0.2, {TextColor3 = Theme.TextDim}) end
+                    SetIconColor(old.Icon, Theme.TextDim)
                 end
             end
             Library._ActiveTab = name
@@ -602,7 +671,7 @@ function Library:CreateWindow(config)
                 Tween(tabBar, 0.2, {Size = UDim2.new(0, 3, 0, 18)})
             end
             if tabLabel then Tween(tabLabel, 0.2, {TextColor3 = Theme.Text}) end
-            if tabIcon then Tween(tabIcon, 0.2, {TextColor3 = Theme.Accent}) end
+            SetIconColor(tabIcon, Theme.Accent)
             if tabTitleLabel then tabTitleLabel.Text = name end
         end
 
@@ -619,7 +688,6 @@ function Library:CreateWindow(config)
             end
         end)
 
-        -- Ativa a primeira aba criada
         if not Library._ActiveTab then Activate() end
 
         -- ========================================================
@@ -627,16 +695,15 @@ function Library:CreateWindow(config)
         -- ========================================================
         local TabObject = {}
 
-        -- Colunas (grid lado a lado)
         function TabObject:AddColumns(count)
             count = count or 2
             local holder = Create("Frame", {
                 Name = "Columns",
-                Size = UDim2.new(1, -10, 0, 0),
+                Size = UDim2.new(1, 0, 0, 0),
                 BackgroundTransparency = 1,
                 Parent = tabPage
             })
-            local rowLayout = Create("UIListLayout", {
+            Create("UIListLayout", {
                 FillDirection = Enum.FillDirection.Horizontal,
                 Padding = UDim.new(0, 8),
                 SortOrder = Enum.SortOrder.LayoutOrder,
@@ -665,20 +732,18 @@ function Library:CreateWindow(config)
                             if l then maxH = math.max(maxH, l.AbsoluteContentSize.Y) end
                         end
                     end
-                    holder.Size = UDim2.new(1, -10, 0, maxH)
+                    holder.Size = UDim2.new(1, 0, 0, maxH)
                 end)
 
-                -- Wrapper que faz AddSection ir pra dentro da coluna
                 local colWrap = {}
-                function colWrap:AddSection(name, icon)
-                    return TabObject._CreateSection(name, icon, colFrame)
+                function colWrap:AddSection(name2, icon2)
+                    return TabObject._CreateSection(name2, icon2, colFrame)
                 end
                 columns[i] = colWrap
             end
             return table.unpack(columns)
         end
 
-        -- Criação de Section (usada internamente pelas colunas também)
         function TabObject._CreateSection(name, icon, parentFrame)
             parentFrame = parentFrame or tabPage
 
@@ -692,7 +757,7 @@ function Library:CreateWindow(config)
             Corner(section, 6)
             Stroke(section, Theme.Border, 1)
 
-            -- Header da section
+            -- Header SEM toggle
             local header = Create("Frame", {
                 Name = "Header",
                 Size = UDim2.new(1, 0, 0, 30),
@@ -702,21 +767,25 @@ function Library:CreateWindow(config)
             })
             Corner(header, 6)
 
-            -- Ícone da seção (bolinha vermelha por padrão)
-            local sectionIcon = Create("TextLabel", {
-                Size = UDim2.new(0, 20, 1, 0),
-                Position = UDim2.new(0, 8, 0, 0),
-                BackgroundTransparency = 1,
-                Text = icon or "●",
-                TextColor3 = Theme.Accent,
-                TextSize = 12,
-                Font = Enum.Font.GothamBold,
-                Parent = header
-            })
+            -- Ícone da seção
+            if icon and icon ~= "" then
+                MakeIcon(header, icon, 14, UDim2.new(0, 10, 0.5, -7), Theme.Accent, "")
+            else
+                Create("TextLabel", {
+                    Size = UDim2.new(0, 20, 1, 0),
+                    Position = UDim2.new(0, 8, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = "●",
+                    TextColor3 = Theme.Accent,
+                    TextSize = 12,
+                    Font = Enum.Font.GothamBold,
+                    Parent = header
+                })
+            end
 
-            -- Título da seção
+            -- Título
             Create("TextLabel", {
-                Size = UDim2.new(1, -80, 1, 0),
+                Size = UDim2.new(1, -40, 1, 0),
                 Position = UDim2.new(0, 28, 0, 0),
                 BackgroundTransparency = 1,
                 Text = name,
@@ -727,50 +796,7 @@ function Library:CreateWindow(config)
                 Parent = header
             })
 
-            -- Toggle no header da section (aquele toggle do canto)
-            local headerToggleBtn = Create("Frame", {
-                Name = "HeaderToggle",
-                Size = UDim2.new(0, 34, 0, 16),
-                Position = UDim2.new(1, -42, 0.5, -8),
-                BackgroundColor3 = Theme.ToggleOff,
-                BorderSizePixel = 0,
-                Parent = header
-            })
-            Corner(headerToggleBtn, 8)
-            local headerToggleKnob = Create("Frame", {
-                Size = UDim2.new(0, 12, 0, 12),
-                Position = UDim2.new(0, 2, 0.5, -6),
-                BackgroundColor3 = Color3.fromRGB(150, 150, 150),
-                BorderSizePixel = 0,
-                Parent = headerToggleBtn
-            })
-            Corner(headerToggleKnob, 6)
-
-            local headerToggleState = false
-            local headerToggleBtnClick = Create("TextButton", {
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Text = "",
-                Parent = headerToggleBtn
-            })
-            headerToggleBtnClick.MouseButton1Click:Connect(function()
-                headerToggleState = not headerToggleState
-                if headerToggleState then
-                    Tween(headerToggleBtn, 0.15, {BackgroundColor3 = Theme.ToggleOn})
-                    Tween(headerToggleKnob, 0.15, {
-                        Position = UDim2.new(1, -14, 0.5, -6),
-                        BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    })
-                else
-                    Tween(headerToggleBtn, 0.15, {BackgroundColor3 = Theme.ToggleOff})
-                    Tween(headerToggleKnob, 0.15, {
-                        Position = UDim2.new(0, 2, 0.5, -6),
-                        BackgroundColor3 = Color3.fromRGB(150, 150, 150)
-                    })
-                end
-            end)
-
-            -- Container de conteúdo
+            -- Container
             local contentHolder = Create("Frame", {
                 Name = "Content",
                 Size = UDim2.new(1, -16, 0, 0),
@@ -790,7 +816,6 @@ function Library:CreateWindow(config)
 
             local SectionObject = {}
 
-            -- Label
             function SectionObject:AddLabel(text)
                 local lbl = Create("TextLabel", {
                     Size = UDim2.new(1, 0, 0, 20),
@@ -805,7 +830,6 @@ function Library:CreateWindow(config)
                 return { Set = function(_, t) lbl.Text = t end }
             end
 
-            -- Botão
             function SectionObject:AddButton(text, cb)
                 cb = cb or function() end
                 local btn = Create("TextButton", {
@@ -838,7 +862,6 @@ function Library:CreateWindow(config)
                 return { SetText = function(_, t) lbl.Text = t end }
             end
 
-            -- Toggle (o bolão redondo — igual na imagem o "Enable Aim")
             function SectionObject:AddToggle(text, default, flag, cb)
                 default = default or false
                 cb = cb or function() end
@@ -913,7 +936,6 @@ function Library:CreateWindow(config)
                 }
             end
 
-            -- Checkbox (o quadradinho vermelho com ✓ — tipo "Visible Check")
             function SectionObject:AddCheckbox(text, default, flag, cb)
                 default = default or false
                 cb = cb or function() end
@@ -986,7 +1008,6 @@ function Library:CreateWindow(config)
                 }
             end
 
-            -- Slider (barra vermelha)
             function SectionObject:AddSlider(text, min, max, default, flag, cb)
                 min = min or 0; max = max or 100
                 default = default or min
@@ -1086,7 +1107,6 @@ function Library:CreateWindow(config)
                 }
             end
 
-            -- Keybind
             function SectionObject:AddKeybind(text, default, flag, cb)
                 default = default or Enum.KeyCode.None
                 cb = cb or function() end
@@ -1161,7 +1181,6 @@ function Library:CreateWindow(config)
                 }
             end
 
-            -- Dropdown simples
             function SectionObject:AddDropdown(text, options, default, flag, cb)
                 options = options or {}
                 default = default or options[1] or ""
@@ -1228,7 +1247,7 @@ function Library:CreateWindow(config)
                 Corner(list, 4)
                 Stroke(list, Theme.Border)
 
-                local listLayout = Create("UIListLayout", {
+                Create("UIListLayout", {
                     Padding = UDim.new(0, 2),
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = list
@@ -1292,7 +1311,6 @@ function Library:CreateWindow(config)
                 }
             end
 
-            -- Textbox
             function SectionObject:AddTextbox(placeholder, flag, cb)
                 cb = cb or function() end
                 local box = Create("TextBox", {
@@ -1321,7 +1339,6 @@ function Library:CreateWindow(config)
                 }
             end
 
-            -- ColorPicker simplificado
             function SectionObject:AddColorPicker(text, default, flag, cb)
                 default = default or Color3.fromRGB(255, 255, 255)
                 cb = cb or function() end
@@ -1353,7 +1370,6 @@ function Library:CreateWindow(config)
                 Corner(swatch, 3)
                 Stroke(swatch, Theme.BorderLight)
 
-                -- Só um picker HSV básico (SV + H)
                 local open = false
                 local pickerHolder = Create("Frame", {
                     Size = UDim2.new(1, 0, 0, 0),
@@ -1468,7 +1484,6 @@ function Library:CreateWindow(config)
             return SectionObject
         end
 
-        -- AddSection normal (na tabPage)
         function TabObject:AddSection(name, icon)
             return TabObject._CreateSection(name, icon, tabPage)
         end
@@ -1484,7 +1499,7 @@ function Library:CreateWindow(config)
         Size = UDim2.new(0, 50, 0, 50),
         Position = UDim2.new(0, 20, 0.5, -25),
         BackgroundColor3 = Theme.Element,
-        Text = "S",
+        Text = "C",
         TextColor3 = Theme.Accent,
         TextSize = 22,
         Font = Enum.Font.GothamBlack,
