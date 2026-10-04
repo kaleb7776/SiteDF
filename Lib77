@@ -1,6 +1,6 @@
 -- ================================================================
--- CLASSIC UI - Biblioteca completa (tema vermelho/preto)
--- Estilo: Classic [beta] | ToggleKey: RightControl
+-- CLASSIC UI - Biblioteca completa avançada
+-- Tema: vermelho/preto | ToggleKey: RightControl
 -- ================================================================
 
 local Players          = game:GetService("Players")
@@ -8,12 +8,13 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService     = game:GetService("TweenService")
 local RunService       = game:GetService("RunService")
 local CoreGui          = game:GetService("CoreGui")
+local Stats            = game:GetService("Stats")
 
 local LocalPlayer = Players.LocalPlayer
 local IsMobile    = UserInputService.TouchEnabled
 
 -- ================================================================
--- TEMA CLASSIC (PRETO + VERMELHO)
+-- TEMA
 -- ================================================================
 local Theme = {
     Background   = Color3.fromRGB(10, 10, 10),
@@ -129,14 +130,12 @@ local function Draggable(handle, frame)
     end)
 end
 
--- Detecta se ícone é asset ID ou texto
 local function IsAssetId(icon)
     if type(icon) == "number" then return true end
     if type(icon) == "string" and icon:match("^rbxassetid://") then return true end
     return false
 end
 
--- Cria ícone (ImageLabel se asset, TextLabel se texto)
 local function MakeIcon(parent, icon, size, pos, color, defaultText)
     size = size or 16
     color = color or Theme.TextDim
@@ -164,7 +163,7 @@ local function MakeIcon(parent, icon, size, pos, color, defaultText)
     end
 end
 
-local function SetIconColor(iconInst, color, isImage)
+local function SetIconColor(iconInst, color)
     if not iconInst then return end
     if iconInst:IsA("ImageLabel") then
         Tween(iconInst, 0.2, {ImageColor3 = color})
@@ -272,14 +271,61 @@ function Library:Notify(title, text, duration, nType)
 end
 
 -- ================================================================
+-- FUNÇÕES DE DETECÇÃO
+-- ================================================================
+local function GetExecutorName()
+    pcall(function()
+        if type(identifyexecutor) == "function" then
+            local ok, n = pcall(identifyexecutor)
+            if ok and n and n ~= "" then return n end
+        end
+        if type(getexecutorname) == "function" then
+            local ok, n = pcall(getexecutorname)
+            if ok and n then return n end
+        end
+        if type(syn) == "table" and syn and syn.request then return "Synapse X" end
+        if type(krnl) == "table" and krnl and krnl.loadfile then return "Krnl" end
+        if type(fluxus) == "table" then return "Fluxus" end
+        if type(secure_call) == "function" then return "Sirhurt" end
+        if type(request) == "function" or type(http_request) == "function" then return "HTTP" end
+    end)
+    return "Desconhecido"
+end
+
+local function GetPing()
+    local ok, result = pcall(function()
+        local net = Stats:FindFirstChild("Network")
+        if net then
+            local p = net:FindFirstChild("Ping")
+            if p and p.Value then return math.floor(p.Value * 1000) end
+        end
+        for _, child in ipairs(Stats:GetDescendants()) do
+            if child:IsA("NumberValue") and child.Name:lower():find("ping") then
+                return math.floor(child.Value * 1000)
+            end
+        end
+        return 0
+    end)
+    return ok and result or 0
+end
+
+local function GetMemory()
+    local ok, result = pcall(function()
+        return math.floor(Stats:GetTotalMemoryUsageMb())
+    end)
+    return ok and result or 0
+end
+
+-- ================================================================
 -- JANELA
 -- ================================================================
 function Library:CreateWindow(config)
     config = config or {}
     local title   = config.Title or "CLASSIC"
     local footer  = config.Footer or "Classic [beta]"
-    local size    = config.Size or UDim2.new(0, 780, 0, 480)
+    local size    = config.Size or UDim2.new(0, 820, 0, 500)
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
+    local footerHeight = config.FooterHeight or 54
 
     Library.Keybind = toggleKey
 
@@ -310,7 +356,7 @@ function Library:CreateWindow(config)
     Stroke(main, Theme.Border, 1)
     Library._MainFrame = main
 
-    -- Barra vermelha no topo
+    -- Barra vermelha topo
     local topGlow = Create("Frame", {
         Size = UDim2.new(1, 0, 0, 2),
         BackgroundColor3 = Theme.Accent,
@@ -368,7 +414,6 @@ function Library:CreateWindow(config)
     })
     Corner(streak, 2)
 
-    -- Título da aba ativa
     local tabTitleLabel = Create("TextLabel", {
         Name = "TabTitle",
         Size = UDim2.new(0, 200, 1, 0),
@@ -382,7 +427,6 @@ function Library:CreateWindow(config)
         Parent = header
     })
 
-    -- Botão fechar
     local closeBtn = Create("TextButton", {
         Size = UDim2.new(0, 30, 0, 30),
         Position = UDim2.new(1, -38, 0.5, -15),
@@ -396,7 +440,6 @@ function Library:CreateWindow(config)
     })
     Corner(closeBtn, 5)
 
-    -- Botão minimizar
     local minBtn = Create("TextButton", {
         Size = UDim2.new(0, 30, 0, 30),
         Position = UDim2.new(1, -74, 0.5, -15),
@@ -430,7 +473,7 @@ function Library:CreateWindow(config)
     -- ============================================================
     local sidebar = Create("Frame", {
         Name = "Sidebar",
-        Size = UDim2.new(0, 170, 1, -42 - 42),
+        Size = UDim2.new(0, 170, 1, -42 - footerHeight),
         Position = UDim2.new(0, 0, 0, 42),
         BackgroundColor3 = Theme.Sidebar,
         BorderSizePixel = 0,
@@ -468,7 +511,7 @@ function Library:CreateWindow(config)
     -- ============================================================
     local content = Create("Frame", {
         Name = "Content",
-        Size = UDim2.new(1, -170, 1, -42 - 42),
+        Size = UDim2.new(1, -170, 1, -42 - footerHeight),
         Position = UDim2.new(0, 170, 0, 42),
         BackgroundTransparency = 1,
         ClipsDescendants = true,
@@ -476,74 +519,330 @@ function Library:CreateWindow(config)
     })
 
     -- ============================================================
-    -- RODAPÉ (avatar + nick + ID + texto classic)
+    -- RODAPÉ COMPLETO (5 colunas)
     -- ============================================================
     local footerFrame = Create("Frame", {
         Name = "Footer",
-        Size = UDim2.new(1, 0, 0, 42),
-        Position = UDim2.new(0, 0, 1, -42),
+        Size = UDim2.new(1, 0, 0, footerHeight),
+        Position = UDim2.new(0, 0, 1, -footerHeight),
         BackgroundColor3 = Theme.TopBar,
         BorderSizePixel = 0,
         Parent = main
     })
     Corner(footerFrame, 8)
 
-    -- Avatar
+    -- Linha separadora
+    Create("Frame", {
+        Size = UDim2.new(1, -20, 0, 1),
+        Position = UDim2.new(0, 10, 0, 0),
+        BackgroundColor3 = Theme.Border,
+        BorderSizePixel = 0,
+        Parent = footerFrame
+    })
+
+    -- ============================================================
+    -- COLUNA 1: AVATAR + NICK + ID
+    -- ============================================================
+    local col1 = Create("Frame", {
+        Name = "Col1",
+        Size = UDim2.new(0.22, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Parent = footerFrame
+    })
+
+    local avatarSize = math.clamp(footerHeight * 0.62, 30, 38)
     local avatar = Create("ImageLabel", {
         Name = "Avatar",
-        Size = UDim2.new(0, 32, 0, 32),
-        Position = UDim2.new(0, 10, 0.5, -16),
+        Size = UDim2.new(0, avatarSize, 0, avatarSize),
+        Position = UDim2.new(0, 8, 0.5, -avatarSize/2),
         BackgroundColor3 = Theme.Element,
         BorderSizePixel = 0,
         Image = string.format(
             "https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=60&height=60&format=png",
             LocalPlayer.UserId
         ),
-        Parent = footerFrame
+        Parent = col1
     })
-    Corner(avatar, 16)
+    Corner(avatar, avatarSize / 2)
     Stroke(avatar, Theme.Accent, 1.5)
 
-    -- Nome do jogador
     Create("TextLabel", {
         Name = "Name",
-        Size = UDim2.new(0, 260, 0, 14),
-        Position = UDim2.new(0, 50, 0, 6),
+        Size = UDim2.new(1, -(avatarSize + 16), 0, footerHeight * 0.5),
+        Position = UDim2.new(0, avatarSize + 14, 0, 3),
         BackgroundTransparency = 1,
         Text = LocalPlayer.Name,
         TextColor3 = Theme.Text,
-        TextSize = 12,
+        TextSize = math.clamp(footerHeight * 0.22, 10, 13),
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTruncate = Enum.TextTruncate.AtEnd,
-        Parent = footerFrame
+        Parent = col1
     })
 
-    -- ID do jogador (embaixo do nome, pequenininho)
     Create("TextLabel", {
         Name = "Id",
-        Size = UDim2.new(0, 260, 0, 12),
-        Position = UDim2.new(0, 50, 0, 20),
+        Size = UDim2.new(1, -(avatarSize + 16), 0, footerHeight * 0.4),
+        Position = UDim2.new(0, avatarSize + 14, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
         Text = "ID: " .. tostring(LocalPlayer.UserId),
         TextColor3 = Theme.TextDim,
-        TextSize = 10,
+        TextSize = math.clamp(footerHeight * 0.17, 9, 11),
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = col1
+    })
+
+    -- ============================================================
+    -- COLUNA 2: JOGO + PLAYERS
+    -- ============================================================
+    local col2 = Create("Frame", {
+        Name = "Col2",
+        Size = UDim2.new(0.20, 0, 1, 0),
+        Position = UDim2.new(0.22, 0, 0, 0),
+        BackgroundTransparency = 1,
         Parent = footerFrame
     })
 
-    -- Texto à direita
+    local gameLabel = Create("TextLabel", {
+        Name = "Game",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.5),
+        Position = UDim2.new(0, 4, 0, 3),
+        BackgroundTransparency = 1,
+        Text = "Carregando...",
+        TextColor3 = Theme.Text,
+        TextSize = math.clamp(footerHeight * 0.21, 10, 12),
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = col2
+    })
+
+    local playersLabel = Create("TextLabel", {
+        Name = "Players",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.4),
+        Position = UDim2.new(0, 4, 0, footerHeight * 0.52),
+        BackgroundTransparency = 1,
+        Text = "0 Players",
+        TextColor3 = Theme.TextDim,
+        TextSize = math.clamp(footerHeight * 0.17, 9, 11),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = col2
+    })
+
+    task.spawn(function()
+        pcall(function()
+            local info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+            gameLabel.Text = (info and info.Name) or game.Name or "Jogo Desconhecido"
+        end)
+        while task.wait(2) do
+            pcall(function()
+                local count = #Players:GetPlayers()
+                local maxP = Players.MaxPlayers or 0
+                playersLabel.Text = string.format("%d/%d Players", count, maxP)
+            end)
+        end
+    end)
+
+    -- ============================================================
+    -- COLUNA 3: EXECUTOR + VERSÃO
+    -- ============================================================
+    local col3 = Create("Frame", {
+        Name = "Col3",
+        Size = UDim2.new(0.20, 0, 1, 0),
+        Position = UDim2.new(0.42, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Parent = footerFrame
+    })
+
+    local executorLabel = Create("TextLabel", {
+        Name = "Executor",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.5),
+        Position = UDim2.new(0, 4, 0, 3),
+        BackgroundTransparency = 1,
+        Text = "Executor: ...",
+        TextColor3 = Theme.Text,
+        TextSize = math.clamp(footerHeight * 0.21, 10, 12),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = col3
+    })
+
+    local versionLabel = Create("TextLabel", {
+        Name = "Version",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.4),
+        Position = UDim2.new(0, 4, 0, footerHeight * 0.52),
+        BackgroundTransparency = 1,
+        Text = "Classic UI v1.0",
+        TextColor3 = Theme.TextDim,
+        TextSize = math.clamp(footerHeight * 0.17, 9, 11),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = col3
+    })
+
+    task.spawn(function()
+        local execNome = GetExecutorName()
+        executorLabel.Text = "Executor: " .. execNome
+    end)
+
+    -- ============================================================
+    -- COLUNA 4: PING + FPS + MEMÓRIA
+    -- ============================================================
+    local col4 = Create("Frame", {
+        Name = "Col4",
+        Size = UDim2.new(0.20, 0, 1, 0),
+        Position = UDim2.new(0.62, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Parent = footerFrame
+    })
+
+    local pingLabel = Create("TextLabel", {
+        Name = "Ping",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
+        Position = UDim2.new(0, 4, 0, 3),
+        BackgroundTransparency = 1,
+        Text = "Ping: --ms",
+        TextColor3 = Theme.Text,
+        TextSize = math.clamp(footerHeight * 0.21, 10, 12),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = col4
+    })
+
+    local fpsLabel = Create("TextLabel", {
+        Name = "Fps",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
+        Position = UDim2.new(0, 4, 0, footerHeight * 0.35),
+        BackgroundTransparency = 1,
+        Text = "FPS: --",
+        TextColor3 = Theme.TextDim,
+        TextSize = math.clamp(footerHeight * 0.19, 9, 11),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = col4
+    })
+
+    local memLabel = Create("TextLabel", {
+        Name = "Memory",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
+        Position = UDim2.new(0, 4, 0, footerHeight * 0.67),
+        BackgroundTransparency = 1,
+        Text = "RAM: --MB",
+        TextColor3 = Theme.TextDim,
+        TextSize = math.clamp(footerHeight * 0.17, 9, 11),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = col4
+    })
+
+    task.spawn(function()
+        local frameCount, timeAccum = 0, 0
+        local fps, ping, mem = 0, 0, 0
+
+        RunService.RenderStepped:Connect(function(delta)
+            frameCount = frameCount + 1
+            timeAccum = timeAccum + delta
+            if timeAccum >= 0.5 then
+                fps = math.floor(frameCount / timeAccum)
+                frameCount = 0
+                timeAccum = 0
+                ping = GetPing()
+                mem = GetMemory()
+                pcall(function()
+                    pingLabel.Text = string.format("Ping: %dms", ping)
+                    fpsLabel.Text = string.format("FPS: %d", fps)
+                    memLabel.Text = string.format("RAM: %dMB", mem)
+                end)
+            end
+        end)
+    end)
+
+    -- ============================================================
+    -- COLUNA 5: HORA + DATA + SERVIDOR + REGIÃO
+    -- ============================================================
+    local col5 = Create("Frame", {
+        Name = "Col5",
+        Size = UDim2.new(0.18, 0, 1, 0),
+        Position = UDim2.new(0.82, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Parent = footerFrame
+    })
+
+    local horaLabel = Create("TextLabel", {
+        Name = "Hora",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
+        Position = UDim2.new(0, 4, 0, 3),
+        BackgroundTransparency = 1,
+        Text = "--:--:--",
+        TextColor3 = Theme.Text,
+        TextSize = math.clamp(footerHeight * 0.21, 10, 12),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = col5
+    })
+
+    local dataLabel = Create("TextLabel", {
+        Name = "Data",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
+        Position = UDim2.new(0, 4, 0, footerHeight * 0.35),
+        BackgroundTransparency = 1,
+        Text = "--/--/----",
+        TextColor3 = Theme.TextDim,
+        TextSize = math.clamp(footerHeight * 0.17, 9, 11),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = col5
+    })
+
+    local serverLabel = Create("TextLabel", {
+        Name = "Server",
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
+        Position = UDim2.new(0, 4, 0, footerHeight * 0.67),
+        BackgroundTransparency = 1,
+        Text = "SRV: ----",
+        TextColor3 = Theme.TextDim,
+        TextSize = math.clamp(footerHeight * 0.17, 9, 11),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = col5
+    })
+
+    -- Atualiza hora/data/servidor
+    task.spawn(function()
+        while task.wait(1) do
+            pcall(function()
+                local now = os.date("*t")
+                horaLabel.Text = string.format("%02d:%02d:%02d", now.hour, now.min, now.sec)
+                dataLabel.Text = string.format("%02d/%02d/%04d", now.day, now.month, now.year)
+                local jobId = game.JobId or ""
+                if #jobId > 0 then
+                    serverLabel.Text = "SRV: " .. string.sub(jobId, 1, 8)
+                else
+                    serverLabel.Text = "SRV: Studio"
+                end
+            end)
+        end
+    end)
+
+    -- Texto "Classic [beta]" à direita
     Create("TextLabel", {
         Name = "FooterText",
-        Size = UDim2.new(0, 320, 1, 0),
-        Position = UDim2.new(1, -330, 0, 0),
+        Size = UDim2.new(0, 180, 1, 0),
+        Position = UDim2.new(1, -190, 0, 0),
         BackgroundTransparency = 1,
         Text = footer,
         TextColor3 = Theme.TextDark,
-        TextSize = 11,
+        TextSize = 10,
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Right,
+        TextYAlignment = Enum.TextYAlignment.Center,
         Parent = footerFrame
     })
 
@@ -586,7 +885,6 @@ function Library:CreateWindow(config)
         })
         Corner(tabBtn, 5)
 
-        -- Barra lateral vermelha
         local tabBar = Create("Frame", {
             Name = "Bar",
             Size = UDim2.new(0, 3, 0, 0),
@@ -599,13 +897,11 @@ function Library:CreateWindow(config)
         })
         Corner(tabBar, 2)
 
-        -- Ícone (texto ou asset)
         local tabIcon = nil
         if icon ~= "" then
             tabIcon = MakeIcon(tabBtn, icon, 16, UDim2.new(0, 10, 0.5, -8), Theme.TextDim, "")
         end
 
-        -- Nome
         local tabLabel = Create("TextLabel", {
             Size = UDim2.new(1, icon ~= "" and -35 or -15, 1, 0),
             Position = UDim2.new(0, icon ~= "" and 32 or 10, 0, 0),
@@ -618,7 +914,6 @@ function Library:CreateWindow(config)
             Parent = tabBtn
         })
 
-        -- Página
         local tabPage = Create("ScrollingFrame", {
             Name = "Page_" .. name,
             Size = UDim2.new(1, 0, 1, 0),
@@ -647,11 +942,8 @@ function Library:CreateWindow(config)
         end)
 
         Library._Tabs[name] = {
-            Button = tabBtn,
-            Bar = tabBar,
-            Icon = tabIcon,
-            Label = tabLabel,
-            Page = tabPage,
+            Button = tabBtn, Bar = tabBar, Icon = tabIcon,
+            Label = tabLabel, Page = tabPage,
         }
 
         local function Activate()
@@ -757,7 +1049,6 @@ function Library:CreateWindow(config)
             Corner(section, 6)
             Stroke(section, Theme.Border, 1)
 
-            -- Header SEM toggle
             local header = Create("Frame", {
                 Name = "Header",
                 Size = UDim2.new(1, 0, 0, 30),
@@ -767,7 +1058,6 @@ function Library:CreateWindow(config)
             })
             Corner(header, 6)
 
-            -- Ícone da seção
             if icon and icon ~= "" then
                 MakeIcon(header, icon, 14, UDim2.new(0, 10, 0.5, -7), Theme.Accent, "")
             else
@@ -783,7 +1073,6 @@ function Library:CreateWindow(config)
                 })
             end
 
-            -- Título
             Create("TextLabel", {
                 Size = UDim2.new(1, -40, 1, 0),
                 Position = UDim2.new(0, 28, 0, 0),
@@ -796,7 +1085,6 @@ function Library:CreateWindow(config)
                 Parent = header
             })
 
-            -- Container
             local contentHolder = Create("Frame", {
                 Name = "Content",
                 Size = UDim2.new(1, -16, 0, 0),
@@ -1525,7 +1813,6 @@ function Library:CreateWindow(config)
         main.Visible = false
     end
 
-    -- Toggle key
     UserInputService.InputBegan:Connect(function(input, gp)
         if gp then return end
         if input.KeyCode == Library.Keybind then
