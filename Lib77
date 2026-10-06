@@ -322,7 +322,7 @@ function Library:CreateWindow(config)
     local title        = config.Title or "CLASSIC"
     local footer       = config.Footer or "Classic [beta]"
     local size         = config.Size or UDim2.new(0, 840, 0, 500)
-    local toggleKey    = config.ToggleKey or Enum.KeyCode.Home
+    local toggleKey    = config.ToggleKey or Enum.KeyCode.Delete
     local footerHeight = config.FooterHeight or 54
     Library.Keybind = toggleKey
     local parent = GetSafeParent()
