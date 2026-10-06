@@ -1,6 +1,6 @@
 -- ================================================================
--- CLASSIC UI - Biblioteca completa avançada
--- Tema: vermelho/preto | ToggleKey: RightControl
+-- CLASSIC UI - Biblioteca avançada (tema vermelho/preto)
+-- Toggle: RightControl | Estilo: clean + accent vermelho
 -- ================================================================
 
 local Players          = game:GetService("Players")
@@ -9,6 +9,7 @@ local TweenService     = game:GetService("TweenService")
 local RunService       = game:GetService("RunService")
 local CoreGui          = game:GetService("CoreGui")
 local Stats            = game:GetService("Stats")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 local LocalPlayer = Players.LocalPlayer
 local IsMobile    = UserInputService.TouchEnabled
@@ -18,25 +19,26 @@ local IsMobile    = UserInputService.TouchEnabled
 -- ================================================================
 local Theme = {
     Background   = Color3.fromRGB(10, 10, 10),
-    TopBar       = Color3.fromRGB(16, 16, 16),
-    Sidebar      = Color3.fromRGB(12, 12, 12),
+    TopBar       = Color3.fromRGB(15, 15, 15),
+    Sidebar      = Color3.fromRGB(11, 11, 11),
     Section      = Color3.fromRGB(18, 18, 18),
     SectionHover = Color3.fromRGB(22, 22, 22),
     Element      = Color3.fromRGB(25, 25, 25),
     ElementHover = Color3.fromRGB(35, 35, 35),
-    Text         = Color3.fromRGB(255, 255, 255),
-    TextDim      = Color3.fromRGB(130, 130, 130),
-    TextDark     = Color3.fromRGB(90, 90, 90),
+    Text         = Color3.fromRGB(240, 240, 240),
+    TextDim      = Color3.fromRGB(135, 135, 135),
+    TextDark     = Color3.fromRGB(85, 85, 85),
     Accent       = Color3.fromRGB(220, 30, 35),
-    AccentHover  = Color3.fromRGB(255, 55, 60),
+    AccentHover  = Color3.fromRGB(255, 60, 65),
     AccentDim    = Color3.fromRGB(120, 15, 18),
-    Border       = Color3.fromRGB(28, 28, 28),
+    Border       = Color3.fromRGB(26, 26, 26),
     BorderLight  = Color3.fromRGB(40, 40, 40),
     ToggleOff    = Color3.fromRGB(45, 45, 45),
     ToggleOn     = Color3.fromRGB(220, 30, 35),
     SliderBg     = Color3.fromRGB(30, 30, 30),
     SliderFill   = Color3.fromRGB(220, 30, 35),
-    Category     = Color3.fromRGB(75, 75, 75),
+    Category     = Color3.fromRGB(80, 80, 80),
+    Shadow       = Color3.fromRGB(0, 0, 0),
 }
 
 -- ================================================================
@@ -62,9 +64,7 @@ local function Create(class, props)
     if not ok or not inst then return nil end
     if props then
         for k, v in pairs(props) do
-            if k ~= "Parent" then
-                pcall(function() inst[k] = v end)
-            end
+            if k ~= "Parent" then pcall(function() inst[k] = v end) end
         end
         if props.Parent then inst.Parent = props.Parent end
     end
@@ -89,6 +89,17 @@ local function Stroke(parent, color, thickness, transparency)
         Color = color or Theme.Border,
         Thickness = thickness or 1,
         Transparency = transparency or 0,
+        Parent = parent
+    })
+end
+
+-- Drop shadow interna (simula sombra)
+local function InnerShadow(parent)
+    if not parent then return end
+    return Create("UIStroke", {
+        Color = Theme.Shadow,
+        Thickness = 1,
+        Transparency = 0.7,
         Parent = parent
     })
 end
@@ -170,6 +181,99 @@ local function SetIconColor(iconInst, color)
     else
         Tween(iconInst, 0.2, {TextColor3 = color})
     end
+end
+
+-- ================================================================
+-- DETECÇÕES
+-- ================================================================
+local function GetPing()
+    local ok, result = pcall(function()
+        local net = Stats:FindFirstChild("Network")
+        if net then
+            local serverStats = net:FindFirstChild("ServerStatsItem")
+            if serverStats then
+                local dataPing = serverStats:FindFirstChild("Data Ping")
+                if dataPing and dataPing.Value then
+                    return math.floor(dataPing.Value)
+                end
+            end
+            local p = net:FindFirstChild("Ping")
+            if p and p.Value then return math.floor(p.Value * 1000) end
+        end
+        for _, child in ipairs(Stats:GetDescendants()) do
+            if child:IsA("NumberValue") and child.Name:lower():find("ping") then
+                return math.floor(child.Value)
+            end
+        end
+        return 0
+    end)
+    return ok and result or 0
+end
+
+local function GetMemory()
+    local ok, result = pcall(function()
+        return math.floor(Stats:GetTotalMemoryUsageMb())
+    end)
+    return ok and result or 0
+end
+
+local function GetExecutor()
+    local name, version = "Desconhecido", ""
+
+    -- 1) getexecutorname
+    pcall(function()
+        if type(getexecutorname) == "function" then
+            local ok, n = pcall(getexecutorname)
+            if ok and n and n ~= "" then name = n end
+        end
+    end)
+
+    -- 2) identifyexecutor (retorna nome + versão)
+    if name == "Desconhecido" then
+        pcall(function()
+            if type(identifyexecutor) == "function" then
+                local ok, n, v = pcall(identifyexecutor)
+                if ok and n and n ~= "" then
+                    name = n
+                    if v and v ~= "" then version = tostring(v) end
+                end
+            end
+        end)
+    end
+
+    -- 3) Fallback manual
+    if name == "Desconhecido" then
+        if type(syn) == "table" and syn and syn.request then
+            name = "Synapse X"
+            pcall(function() if syn.version then version = tostring(syn.version) end end)
+        elseif type(krnl) == "table" and krnl and krnl.loadfile then
+            name = "Krnl"
+            pcall(function() if krnl.version then version = tostring(krnl.version) end end)
+        elseif type(fluxus) == "table" then
+            name = "Fluxus"
+            pcall(function() if fluxus.version then version = tostring(fluxus.version) end end)
+        elseif type(secure_call) == "function" or type(is_sirhurt_closure) == "function" then
+            name = "Sirhurt"
+        elseif type(ThunderClient) == "table" then
+            name = "Thunder Client"
+        elseif type(Delta) == "table" then
+            name = "Delta"
+        elseif type(Wave) == "table" then
+            name = "Wave"
+        end
+    end
+
+    -- 4) Tentar pegar versão se ainda vazia
+    if version == "" then
+        pcall(function()
+            if type(getexecutorversion) == "function" then
+                local ok, v = pcall(getexecutorversion)
+                if ok and v and v ~= "" then version = tostring(v) end
+            end
+        end)
+    end
+
+    return name, version
 end
 
 -- ================================================================
@@ -271,60 +375,14 @@ function Library:Notify(title, text, duration, nType)
 end
 
 -- ================================================================
--- FUNÇÕES DE DETECÇÃO
--- ================================================================
-local function GetExecutorName()
-    pcall(function()
-        if type(identifyexecutor) == "function" then
-            local ok, n = pcall(identifyexecutor)
-            if ok and n and n ~= "" then return n end
-        end
-        if type(getexecutorname) == "function" then
-            local ok, n = pcall(getexecutorname)
-            if ok and n then return n end
-        end
-        if type(syn) == "table" and syn and syn.request then return "Synapse X" end
-        if type(krnl) == "table" and krnl and krnl.loadfile then return "Krnl" end
-        if type(fluxus) == "table" then return "Fluxus" end
-        if type(secure_call) == "function" then return "Sirhurt" end
-        if type(request) == "function" or type(http_request) == "function" then return "HTTP" end
-    end)
-    return "Desconhecido"
-end
-
-local function GetPing()
-    local ok, result = pcall(function()
-        local net = Stats:FindFirstChild("Network")
-        if net then
-            local p = net:FindFirstChild("Ping")
-            if p and p.Value then return math.floor(p.Value * 1000) end
-        end
-        for _, child in ipairs(Stats:GetDescendants()) do
-            if child:IsA("NumberValue") and child.Name:lower():find("ping") then
-                return math.floor(child.Value * 1000)
-            end
-        end
-        return 0
-    end)
-    return ok and result or 0
-end
-
-local function GetMemory()
-    local ok, result = pcall(function()
-        return math.floor(Stats:GetTotalMemoryUsageMb())
-    end)
-    return ok and result or 0
-end
-
--- ================================================================
 -- JANELA
 -- ================================================================
 function Library:CreateWindow(config)
     config = config or {}
-    local title   = config.Title or "CLASSIC"
-    local footer  = config.Footer or "Classic [beta]"
-    local size    = config.Size or UDim2.new(0, 820, 0, 500)
-    local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
+    local title        = config.Title or "CLASSIC"
+    local footer       = config.Footer or "Classic [beta]"
+    local size         = config.Size or UDim2.new(0, 840, 0, 500)
+    local toggleKey    = config.ToggleKey or Enum.KeyCode.RightControl
     local footerHeight = config.FooterHeight or 54
 
     Library.Keybind = toggleKey
@@ -352,18 +410,27 @@ function Library:CreateWindow(config)
         BorderSizePixel = 0,
         Parent = gui
     })
-    Corner(main, 8)
+    Corner(main, 10)
     Stroke(main, Theme.Border, 1)
+    InnerShadow(main)
     Library._MainFrame = main
 
-    -- Barra vermelha topo
+    -- Barra vermelha no topo (com gradiente)
     local topGlow = Create("Frame", {
         Size = UDim2.new(1, 0, 0, 2),
         BackgroundColor3 = Theme.Accent,
         BorderSizePixel = 0,
         Parent = main
     })
-    Corner(topGlow, 8)
+    Corner(topGlow, 10)
+    Create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Theme.AccentDim),
+            ColorSequenceKeypoint.new(0.5, Theme.Accent),
+            ColorSequenceKeypoint.new(1, Theme.AccentDim),
+        }),
+        Parent = topGlow
+    })
 
     -- ============================================================
     -- HEADER
@@ -375,7 +442,7 @@ function Library:CreateWindow(config)
         BorderSizePixel = 0,
         Parent = main
     })
-    Corner(header, 8)
+    Corner(header, 10)
     Create("Frame", {
         Size = UDim2.new(1, 0, 0, 12),
         Position = UDim2.new(0, 0, 1, -12),
@@ -385,7 +452,7 @@ function Library:CreateWindow(config)
     })
     Draggable(header, main)
 
-    -- Logo CLASSIC
+    -- Logo
     local logoFrame = Create("Frame", {
         Name = "Logo",
         Size = UDim2.new(0, 140, 1, 0),
@@ -427,6 +494,7 @@ function Library:CreateWindow(config)
         Parent = header
     })
 
+    -- Botão fechar
     local closeBtn = Create("TextButton", {
         Size = UDim2.new(0, 30, 0, 30),
         Position = UDim2.new(1, -38, 0.5, -15),
@@ -440,6 +508,7 @@ function Library:CreateWindow(config)
     })
     Corner(closeBtn, 5)
 
+    -- Botão minimizar
     local minBtn = Create("TextButton", {
         Size = UDim2.new(0, 30, 0, 30),
         Position = UDim2.new(1, -74, 0.5, -15),
@@ -519,7 +588,7 @@ function Library:CreateWindow(config)
     })
 
     -- ============================================================
-    -- RODAPÉ COMPLETO (5 colunas)
+    -- RODAPÉ
     -- ============================================================
     local footerFrame = Create("Frame", {
         Name = "Footer",
@@ -529,7 +598,7 @@ function Library:CreateWindow(config)
         BorderSizePixel = 0,
         Parent = main
     })
-    Corner(footerFrame, 8)
+    Corner(footerFrame, 10)
 
     -- Linha separadora
     Create("Frame", {
@@ -551,11 +620,11 @@ function Library:CreateWindow(config)
         Parent = footerFrame
     })
 
-    local avatarSize = math.clamp(footerHeight * 0.62, 30, 38)
+    local avatarSize = math.clamp(footerHeight * 0.6, 28, 36)
     local avatar = Create("ImageLabel", {
         Name = "Avatar",
         Size = UDim2.new(0, avatarSize, 0, avatarSize),
-        Position = UDim2.new(0, 8, 0.5, -avatarSize/2),
+        Position = UDim2.new(0, 10, 0.5, -avatarSize/2),
         BackgroundColor3 = Theme.Element,
         BorderSizePixel = 0,
         Image = string.format(
@@ -569,8 +638,8 @@ function Library:CreateWindow(config)
 
     Create("TextLabel", {
         Name = "Name",
-        Size = UDim2.new(1, -(avatarSize + 16), 0, footerHeight * 0.5),
-        Position = UDim2.new(0, avatarSize + 14, 0, 3),
+        Size = UDim2.new(1, -(avatarSize + 18), 0, footerHeight * 0.5),
+        Position = UDim2.new(0, avatarSize + 16, 0, 3),
         BackgroundTransparency = 1,
         Text = LocalPlayer.Name,
         TextColor3 = Theme.Text,
@@ -583,8 +652,8 @@ function Library:CreateWindow(config)
 
     Create("TextLabel", {
         Name = "Id",
-        Size = UDim2.new(1, -(avatarSize + 16), 0, footerHeight * 0.4),
-        Position = UDim2.new(0, avatarSize + 14, 0, footerHeight * 0.52),
+        Size = UDim2.new(1, -(avatarSize + 18), 0, footerHeight * 0.4),
+        Position = UDim2.new(0, avatarSize + 16, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
         Text = "ID: " .. tostring(LocalPlayer.UserId),
         TextColor3 = Theme.TextDim,
@@ -636,7 +705,7 @@ function Library:CreateWindow(config)
 
     task.spawn(function()
         pcall(function()
-            local info = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+            local info = MarketplaceService:GetProductInfo(game.PlaceId)
             gameLabel.Text = (info and info.Name) or game.Name or "Jogo Desconhecido"
         end)
         while task.wait(2) do
@@ -678,7 +747,7 @@ function Library:CreateWindow(config)
         Size = UDim2.new(1, -10, 0, footerHeight * 0.4),
         Position = UDim2.new(0, 4, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
-        Text = "Classic UI v1.0",
+        Text = "Versão: ...",
         TextColor3 = Theme.TextDim,
         TextSize = math.clamp(footerHeight * 0.17, 9, 11),
         Font = Enum.Font.Gotham,
@@ -688,8 +757,9 @@ function Library:CreateWindow(config)
     })
 
     task.spawn(function()
-        local execNome = GetExecutorName()
+        local execNome, execVersao = GetExecutor()
         executorLabel.Text = "Executor: " .. execNome
+        versionLabel.Text = (execVersao ~= "" and ("Versão: " .. execVersao)) or "Versão: N/A"
     end)
 
     -- ============================================================
@@ -765,7 +835,7 @@ function Library:CreateWindow(config)
     end)
 
     -- ============================================================
-    -- COLUNA 5: HORA + DATA + SERVIDOR + REGIÃO
+    -- COLUNA 5: HORA + DATA
     -- ============================================================
     local col5 = Create("Frame", {
         Name = "Col5",
@@ -777,7 +847,7 @@ function Library:CreateWindow(config)
 
     local horaLabel = Create("TextLabel", {
         Name = "Hora",
-        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.5),
         Position = UDim2.new(0, 4, 0, 3),
         BackgroundTransparency = 1,
         Text = "--:--:--",
@@ -790,8 +860,8 @@ function Library:CreateWindow(config)
 
     local dataLabel = Create("TextLabel", {
         Name = "Data",
-        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
-        Position = UDim2.new(0, 4, 0, footerHeight * 0.35),
+        Size = UDim2.new(1, -10, 0, footerHeight * 0.4),
+        Position = UDim2.new(0, 4, 0, footerHeight * 0.52),
         BackgroundTransparency = 1,
         Text = "--/--/----",
         TextColor3 = Theme.TextDim,
@@ -801,32 +871,12 @@ function Library:CreateWindow(config)
         Parent = col5
     })
 
-    local serverLabel = Create("TextLabel", {
-        Name = "Server",
-        Size = UDim2.new(1, -10, 0, footerHeight * 0.33),
-        Position = UDim2.new(0, 4, 0, footerHeight * 0.67),
-        BackgroundTransparency = 1,
-        Text = "SRV: ----",
-        TextColor3 = Theme.TextDim,
-        TextSize = math.clamp(footerHeight * 0.17, 9, 11),
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = col5
-    })
-
-    -- Atualiza hora/data/servidor
     task.spawn(function()
         while task.wait(1) do
             pcall(function()
                 local now = os.date("*t")
                 horaLabel.Text = string.format("%02d:%02d:%02d", now.hour, now.min, now.sec)
                 dataLabel.Text = string.format("%02d/%02d/%04d", now.day, now.month, now.year)
-                local jobId = game.JobId or ""
-                if #jobId > 0 then
-                    serverLabel.Text = "SRV: " .. string.sub(jobId, 1, 8)
-                else
-                    serverLabel.Text = "SRV: Studio"
-                end
             end)
         end
     end)
@@ -1049,6 +1099,7 @@ function Library:CreateWindow(config)
             Corner(section, 6)
             Stroke(section, Theme.Border, 1)
 
+            -- Header
             local header = Create("Frame", {
                 Name = "Header",
                 Size = UDim2.new(1, 0, 0, 30),
@@ -1058,6 +1109,7 @@ function Library:CreateWindow(config)
             })
             Corner(header, 6)
 
+            -- Ícone da seção
             if icon and icon ~= "" then
                 MakeIcon(header, icon, 14, UDim2.new(0, 10, 0.5, -7), Theme.Accent, "")
             else
@@ -1073,6 +1125,7 @@ function Library:CreateWindow(config)
                 })
             end
 
+            -- Título
             Create("TextLabel", {
                 Size = UDim2.new(1, -40, 1, 0),
                 Position = UDim2.new(0, 28, 0, 0),
@@ -1085,6 +1138,16 @@ function Library:CreateWindow(config)
                 Parent = header
             })
 
+            -- Linha separadora do header
+            Create("Frame", {
+                Size = UDim2.new(1, -16, 0, 1),
+                Position = UDim2.new(0, 8, 0, 30),
+                BackgroundColor3 = Theme.Border,
+                BorderSizePixel = 0,
+                Parent = section
+            })
+
+            -- Container
             local contentHolder = Create("Frame", {
                 Name = "Content",
                 Size = UDim2.new(1, -16, 0, 0),
