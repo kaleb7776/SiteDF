@@ -322,7 +322,7 @@ function Library:CreateWindow(config)
     local title        = config.Title or "CLASSIC"
     local footer       = config.Footer or "Classic [beta]"
     local size         = config.Size or UDim2.new(0, 840, 0, 500)
-    local toggleKey    = config.ToggleKey or Enum.KeyCode.RightControl
+    local toggleKey    = config.ToggleKey or Enum.KeyCode.Home
     local footerHeight = config.FooterHeight or 54
     Library.Keybind = toggleKey
     local parent = GetSafeParent()
@@ -1648,9 +1648,13 @@ function Library:CreateWindow(config)
         mobileBtn.Visible = true
         main.Visible = false
     end
+    -- ========================================================
+    -- TOGGLE COM A TECLA DEFINIDA (Home por padrão)
+    -- Não checa gameProcessed — funciona SEMPRE
+    -- ========================================================
     UserInputService.InputBegan:Connect(function(input, gp)
-        if gp then return end
-        if input.KeyCode == Library.Keybind then
+        local kb = Library.Keybind or Enum.KeyCode.Home
+        if input.KeyCode == kb then
             Library.Open = not Library.Open
             main.Visible = Library.Open
             if IsMobile and mobileBtn then
