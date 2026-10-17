@@ -1698,145 +1698,167 @@ function Library:CreateWindow(config)
             end
 
             function SectionObject:AddColorPicker(text, default, flag, cb)
-                default = default or Color3.fromRGB(255, 255, 255)
-                cb = cb or function() end
-                local color = default
-                local h, s, v = default:ToHSV()
-                local rowH = math.floor((IsPhone and 30 or 22) * UIScale)
-                local row = Create("Frame", {
-                    Size = UDim2.new(1, 0, 0, rowH),
-                    BackgroundTransparency = 1,
-                    Parent = contentHolder
-                })
-                Create("TextLabel", {
-                    Size = UDim2.new(1, -40, 1, 0),
-                    BackgroundTransparency = 1,
-                    Text = text,
-                    TextColor3 = Theme.Text,
-                    TextSize = math.floor(11 * UIScale),
-                    Font = Enum.Font.Gotham,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextTruncate = Enum.TextTruncate.AtEnd,
-                    Parent = row
-                })
-                local swSz = math.floor(20 * UIScale)
-                local swatch = Create("Frame", {
-                    Size = UDim2.new(0, swSz, 0, swSz * 0.8),
-                    Position = UDim2.new(1, -swSz, 0.5, -(swSz * 0.8)/2),
-                    BackgroundColor3 = color,
-                    BorderSizePixel = 0,
-                    Parent = row
-                })
-                Corner(swatch, 3)
-                Stroke(swatch, Theme.BorderLight)
+    default = default or Color3.fromRGB(255, 255, 255)
+    cb = cb or function() end
+    local color = default
+    local pendingColor = default
+    local h, s, v = default:ToHSV()
+    local rowH = math.floor((IsPhone and 30 or 22) * UIScale)
+    local row = Create("Frame", {
+        Size = UDim2.new(1, 0, 0, rowH),
+        BackgroundTransparency = 1,
+        Parent = contentHolder
+    })
+    Create("TextLabel", {
+        Size = UDim2.new(1, -40, 1, 0),
+        BackgroundTransparency = 1,
+        Text = text,
+        TextColor3 = Theme.Text,
+        TextSize = math.floor(11 * UIScale),
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = row
+    })
+    local swSz = math.floor(20 * UIScale)
+    local swatch = Create("Frame", {
+        Size = UDim2.new(0, swSz, 0, swSz * 0.8),
+        Position = UDim2.new(1, -swSz, 0.5, -(swSz * 0.8)/2),
+        BackgroundColor3 = color,
+        BorderSizePixel = 0,
+        Parent = row
+    })
+    Corner(swatch, 3)
+    Stroke(swatch, Theme.BorderLight)
 
-                local pickerHolder = Create("Frame", {
-                    Size = UDim2.new(1, 0, 0, 0),
-                    BackgroundColor3 = Theme.Element,
-                    ClipsDescendants = true,
-                    Visible = false,
-                    Parent = contentHolder
-                })
-                Corner(pickerHolder, 4)
-                local mapSz = IsPhone and 140 or 120
-                local mapH  = IsPhone and 80  or 70
-                local svMap = Create("ImageButton", {
-                    Size = UDim2.new(0, mapSz, 0, mapH),
-                    Position = UDim2.new(0, 8, 0, 8),
-                    BackgroundColor3 = Color3.fromHSV(h, 1, 1),
-                    Image = "rbxassetid://4155801252",
-                    AutoButtonColor = false,
-                    Parent = pickerHolder
-                })
-                Corner(svMap, 4)
-                local hueW = math.floor(14 * UIScale)
-                local hueBar = Create("ImageButton", {
-                    Size = UDim2.new(0, hueW, 0, mapH),
-                    Position = UDim2.new(0, mapSz + 12, 0, 8),
-                    BackgroundColor3 = Color3.new(1, 1, 1),
-                    AutoButtonColor = false,
-                    Parent = pickerHolder
-                })
-                Corner(hueBar, 4)
-                Create("UIGradient", {
-                    Rotation = 90,
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-                        ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)),
-                        ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
-                        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
-                        ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)),
-                        ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0)),
-                    }),
-                    Parent = hueBar
-                })
-                local draggingSV, draggingHue = false, false
-                local function updateColor()
-                    color = Color3.fromHSV(h, s, v)
-                    swatch.BackgroundColor3 = color
-                    svMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-                    if flag then Library.Flags[flag] = color end
-                    pcall(cb, color)
-                end
-                svMap.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1
-                       or input.UserInputType == Enum.UserInputType.Touch then
-                        draggingSV = true
-                    end
-                end)
-                hueBar.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1
-                       or input.UserInputType == Enum.UserInputType.Touch then
-                        draggingHue = true
-                    end
-                end)
-                UserInputService.InputChanged:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseMovement
-                       or input.UserInputType == Enum.UserInputType.Touch then
-                        if draggingSV then
-                            s = math.clamp((input.Position.X - svMap.AbsolutePosition.X) / svMap.AbsoluteSize.X, 0, 1)
-                            v = 1 - math.clamp((input.Position.Y - svMap.AbsolutePosition.Y) / svMap.AbsoluteSize.Y, 0, 1)
-                            updateColor()
-                        elseif draggingHue then
-                            h = math.clamp((input.Position.Y - hueBar.AbsolutePosition.Y) / hueBar.AbsoluteSize.Y, 0, 1)
-                            updateColor()
-                        end
-                    end
-                end)
-                UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1
-                       or input.UserInputType == Enum.UserInputType.Touch then
-                        draggingSV, draggingHue = false, false
-                    end
-                end)
-                local isOpen = false
-                local pickerHeight = mapH + 16
-                local clickBtn = Create("TextButton", {
-                    Size = UDim2.new(1, 0, 1, 0),
-                    BackgroundTransparency = 1,
-                    Text = "",
-                    Parent = row
-                })
-                clickBtn.MouseButton1Click:Connect(function()
-                    isOpen = not isOpen
-                    if isOpen then
-                        pickerHolder.Visible = true
-                        Tween(pickerHolder, 0.2, {Size = UDim2.new(1, 0, 0, pickerHeight)})
-                    else
-                        Tween(pickerHolder, 0.2, {Size = UDim2.new(1, 0, 0, 0)})
-                        task.delay(0.2, function() pickerHolder.Visible = false end)
-                    end
-                end)
-                if flag then Library.Flags[flag] = color end
-                return {
-                    Set = function(_, c)
-                        color = c; h, s, v = c:ToHSV()
-                        updateColor()
-                    end,
-                    Get = function() return color end
-                }
+    local pickerHolder = Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 0),
+        BackgroundColor3 = Theme.Element,
+        ClipsDescendants = true,
+        Visible = false,
+        Parent = contentHolder
+    })
+    Corner(pickerHolder, 4)
+    
+    local mapSz = IsPhone and 140 or 120
+    local mapH  = IsPhone and 80  or 70
+    local svMap = Create("ImageButton", {
+        Size = UDim2.new(0, mapSz, 0, mapH),
+        Position = UDim2.new(0, 8, 0, 8),
+        BackgroundColor3 = Color3.fromHSV(h, 1, 1),
+        Image = "rbxassetid://4155801252",
+        AutoButtonColor = false,
+        Parent = pickerHolder
+    })
+    Corner(svMap, 4)
+    
+    local hueW = math.floor(14 * UIScale)
+    local hueBar = Create("ImageButton", {
+        Size = UDim2.new(0, hueW, 0, mapH),
+        Position = UDim2.new(0, mapSz + 12, 0, 8),
+        BackgroundColor3 = Color3.new(1, 1, 1),
+        AutoButtonColor = false,
+        Parent = pickerHolder
+    })
+    Corner(hueBar, 4)
+    Create("UIGradient", {
+        Rotation = 90,
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+            ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)),
+            ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+            ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)),
+            ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0)),
+        }),
+        Parent = hueBar
+    })
+    
+    local draggingSV, draggingHue = false, false
+    
+    -- Atualiza apenas o visual, SEM chamar o callback
+    local function updatePreview()
+        pendingColor = Color3.fromHSV(h, s, v)
+        swatch.BackgroundColor3 = pendingColor
+        svMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+    end
+    
+    -- Aplica a cor de verdade (só quando solta o mouse)
+    local function applyColor()
+        if not pendingColor then return end
+        color = pendingColor
+        if flag then Library.Flags[flag] = color end
+        pcall(cb, color)
+    end
+    
+    svMap.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+           or input.UserInputType == Enum.UserInputType.Touch then
+            draggingSV = true
+        end
+    end)
+    hueBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+           or input.UserInputType == Enum.UserInputType.Touch then
+            draggingHue = true
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+           or input.UserInputType == Enum.UserInputType.Touch then
+            if draggingSV then
+                s = math.clamp((input.Position.X - svMap.AbsolutePosition.X) / svMap.AbsoluteSize.X, 0, 1)
+                v = 1 - math.clamp((input.Position.Y - svMap.AbsolutePosition.Y) / svMap.AbsoluteSize.Y, 0, 1)
+                updatePreview() -- Só preview, sem callback
+            elseif draggingHue then
+                h = math.clamp((input.Position.Y - hueBar.AbsolutePosition.Y) / hueBar.AbsoluteSize.Y, 0, 1)
+                updatePreview() -- Só preview, sem callback
             end
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+           or input.UserInputType == Enum.UserInputType.Touch then
+            if draggingSV or draggingHue then
+                applyColor() -- ⬅️ AQUI aplica 1 vez só
+            end
+            draggingSV, draggingHue = false, false
+        end
+    end)
+    
+    local isOpen = false
+    local pickerHeight = mapH + 16
+    local clickBtn = Create("TextButton", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        Parent = row
+    })
+    clickBtn.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        if isOpen then
+            pickerHolder.Visible = true
+            Tween(pickerHolder, 0.2, {Size = UDim2.new(1, 0, 0, pickerHeight)})
+        else
+            Tween(pickerHolder, 0.2, {Size = UDim2.new(1, 0, 0, 0)})
+            task.delay(0.2, function() pickerHolder.Visible = false end)
+        end
+    end)
+    
+    if flag then Library.Flags[flag] = color end
+    return {
+        Set = function(_, c)
+            color = c; pendingColor = c; h, s, v = c:ToHSV()
+            swatch.BackgroundColor3 = c
+            svMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+            if flag then Library.Flags[flag] = c end
+            pcall(cb, c)
+        end,
+        Get = function() return color end
+    }
+end
 
             return SectionObject
         end
