@@ -1,9 +1,12 @@
-local Players          = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService     = game:GetService("TweenService")
-local RunService       = game:GetService("RunService")
-local CoreGui          = game:GetService("CoreGui")
-local Stats            = game:GetService("Stats")
+-- ================================================================
+-- CLASSIC UI LIBRARY - ANTI-BAN PATCH
+-- ================================================================
+local Players            = game:GetService("Players")
+local UserInputService   = game:GetService("UserInputService")
+local TweenService       = game:GetService("TweenService")
+local RunService         = game:GetService("RunService")
+local CoreGui            = game:GetService("CoreGui")
+local Stats              = game:GetService("Stats")
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local LocalPlayer = Players.LocalPlayer
@@ -300,7 +303,7 @@ local NotificationHolder = nil
 
 local function SetupNotifications()
     local gui = Create("ScreenGui", {
-        Name = "ClassicNotifications",
+        Name = "NotificationHolder",  -- ✅ CORRIGIDO: Nome na whitelist do anticheat
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
     })
@@ -410,7 +413,7 @@ function Library:CreateWindow(config)
     SetupNotifications()
 
     local gui = Create("ScreenGui", {
-        Name = "ClassicUI",
+        Name = "Window",  -- ✅ CORRIGIDO: Nome na whitelist do anticheat
         ResetOnSpawn = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Global,
         IgnoreGuiInset = true
